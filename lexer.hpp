@@ -1,21 +1,10 @@
 #pragma once
-#include <cassert>
-#include <cctype>
-#include <cstdlib>
-#include <cwctype>
-#include <fstream>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <vector>
-void lex(std::string fileName) // the verb of the word lexer
+void lex(const std::string& fileContents) // the verb of the word lexer
 {
-  std::ifstream file(fileName);
-  if(!file) // checking if file is valid
-  {
-    std::cout<<"unable to open file "<<fileName;
-    exit(EXIT_FAILURE);
-  }
   enum class TokenType
   {
     exit, //exit keyword
@@ -34,12 +23,14 @@ void lex(std::string fileName) // the verb of the word lexer
 char c;
 std::string currentToken;
 // looping over all the characters in the file and tokenizing/lexing it.
-while (file.get(c)) {
-  if (std::isalpha(c)) {
+for (unsigned int index = 0; index < fileContents.length(); index++) {
+  c = fileContents.at(index);
+  if (std::isalpha(fileContents.at(index))) {
     currentToken+=c;
-    while(file.peek() && std::isalpha(file.peek()))
+    while(index + 1 < fileContents.length() && std::isalpha(fileContents.at(index+1)))
     {
-      file.get(c);
+      index++;
+    c = fileContents.at(index);
       currentToken += c;
     }
     if (currentToken == "exit") 
@@ -48,13 +39,14 @@ while (file.get(c)) {
     }
   } else if (std::isdigit(c)) {
     currentToken.clear();
+    c = fileContents.at(index);
     currentToken += c;
-    while(file.peek() && std::isdigit(file.peek()))
+    while(index + 1 < fileContents.length() && std::isdigit(fileContents.at(index+1)))
     {
-      file.get(c);
+      index++;
+      c = fileContents.at(index);
       currentToken += c;
     }
-
     TokenVector.push_back({TokenType::int_lit, currentToken});
   } else if (c == '(') {
     TokenVector.push_back({TokenType::openParen});
@@ -67,7 +59,7 @@ while (file.get(c)) {
     exit(EXIT_FAILURE);
   }
 }
-  file.close();
   std::cout<<TokenVector.at(2).value.value()<<std::endl;
   std::cout<<"lexed"<<std::endl;
 }
+
