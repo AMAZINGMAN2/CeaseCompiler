@@ -3,6 +3,7 @@
 #include <fstream>
 #include <string>
 #include "lexer.hpp"
+#include "parser.hpp"
 int main (int argc, char *argv[]) {
   if(argc != 2)
   {
@@ -10,7 +11,7 @@ int main (int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   else{
-  std::cout<<"running: "<<argv[1]<<std::endl;
+  // std::cout<<"running: "<<argv[1]<<std::endl;
   }
   std::ifstream file(argv[1]);
   if(!file) // checking if file is valid
@@ -27,6 +28,7 @@ int main (int argc, char *argv[]) {
   file.close();
   //putting the file into a string, may cause files to only have a size of unsigned int64?? but thats probably more than enough.
   lex(fileContents);
+  parse();
   //tokenizing the text inside the file into a vector for now, might change to hashmap or ordered_map or somthing later
   return 0;
 }
