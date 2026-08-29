@@ -10,6 +10,9 @@ enum class TokenType
   openParen, //open parenthesis `(`
   closeParen,//close parenthesis `)`
   int_lit, // integer literal e.g 2 or 5
+  let, // the let keyword
+  ident_lit,
+  eq,
 };
 
 std::string toStr(TokenType type)
@@ -23,6 +26,12 @@ std::string toStr(TokenType type)
       return "`)`";
     case TokenType::int_lit:
       return "int literal";
+    case TokenType::let:
+      return "let";
+    case TokenType::ident_lit:
+      return "identifier";
+    case TokenType::eq:
+      return "`=`";
   }
 }
 
@@ -43,7 +52,9 @@ for (unsigned int index = 0; index < length; index++) {
   c = fileContents[index];
   if (std::isalpha(fileContents[index])) // if is alphabetical
     {
+    currentToken.clear();
     currentToken+=c;
+    // loop while the token is alphanumeric
     while(index+1 < length && std::isalnum(fileContents[index+1]))
     {
       index++;
@@ -52,11 +63,15 @@ for (unsigned int index = 0; index < length; index++) {
     }
     if (currentToken == "exit") //exit keyword
     {
-      TokenVector.push_back({TokenType::exit, currentToken});
+      TokenVector.push_back({TokenType::exit});
     }
-    else {
-      std::cerr<<"error at: "<<currentToken;
-      exit(EXIT_FAILURE);
+    else if (currentToken == "let") //exit keyword
+    {
+      TokenVector.push_back({TokenType::let});
+    }
+          // IDENTIFIER LITERAL
+    else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
+      TokenVector.push_back({TokenType::ident_lit, currentToken});
     }
   } 
   else if (std::isdigit(c)) {
@@ -74,6 +89,8 @@ for (unsigned int index = 0; index < length; index++) {
     TokenVector.push_back({TokenType::openParen});
   } else if (c == ')') {
     TokenVector.push_back({TokenType::closeParen});
+  } else if (c == '=') {
+    TokenVector.push_back({TokenType::eq});
   } else if (std::iswspace(c)) {
     continue;
   } else {
@@ -81,7 +98,8 @@ for (unsigned int index = 0; index < length; index++) {
     exit(EXIT_FAILURE);
   }
 }
-  // std::cout<<TokenVector.at(0).value.value()<<std::endl;
+  // std::cout<<toStr(TokenVector.at(0).type)<<std::endl;
+  // std::cout<<TokenVector.at(2).value.value()<<std::endl;
   // std::cout<<"lexed"<<std::endl;
 }
 
