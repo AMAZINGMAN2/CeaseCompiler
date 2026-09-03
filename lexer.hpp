@@ -39,7 +39,11 @@ std::string toStr(TokenType type)
       return "`=`";
   }
 }
-struct token // token struct with type because its statically typed
+// A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
+// https://www.slideserve.com/nami/levels-of-programming-languages
+
+
+struct token // token struct with type because the programming language is statically typed
 {
   TokenType type;
   std::optional<std::string> value;
@@ -47,17 +51,31 @@ struct token // token struct with type because its statically typed
 
 struct identLit
 {
-  token ident_lit;
+  token name;
 };
 
 struct intLit
 {
-  token int_lit;
+  token value;
 };
 
-struct NodeTerm
+using Expr = std::variant<intLit, identLit>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+
+struct letstmt
 {
-  std::variant<intLit*, identLit*> var;
+  token name;
+  Expr value;
+};
+
+struct exitstmt
+{
+  Expr value;
+};
+
+using statement = std::variant<letstmt, exitstmt>; // add all possible statement here
+
+struct Program{ // a program is a list of statements.
+  std::vector<statement> statements;
 };
 
 
