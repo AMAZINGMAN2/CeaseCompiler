@@ -3,15 +3,13 @@
 #include "codegen.hpp"
 #include <cstdlib>
 #include <unordered_map>
+
 void expected(std::string str);
+
+
 
 std::unordered_map<std::string, int> variables; // the hashmap that stores the variables for O(1) lookup
 
-
-// struct intLit
-// {
-//   token int_lit;
-// };
 
 
 // TokenVector
@@ -28,17 +26,30 @@ void parse()
      {
        if(TokenVector.at(i+1).type == TokenType::openParen)
        {
-         if(TokenVector.at(i+2).type == TokenType::int_lit)
+         if(TokenVector.at(i+2).type == TokenType::ident_lit)
          {
            if(TokenVector.at(i+3).type == TokenType::closeParen)
            {
-             _exit(std::stoi(TokenVector.at(i+2).value.value())); // exits with the integer after the parenthesis
+             auto name = TokenVector.at(i+2).value.value();
+             auto it = variables.find(name);
+             if(it == variables.end())
+             {
+               std::cerr << "Undefined variable: " << name << "\n";
+               exit(EXIT_FAILURE);
+             }
+             _exit(it->second);
              i+=3; // probably unneccesary
            } else{expected(toStr(TokenType::closeParen));}
-         } else{expected(toStr(TokenType::int_lit));}
+         }
+         else if (TokenVector.at(i+2).type == TokenType::int_lit) {
+           if(TokenVector.at(i+3).type == TokenType::closeParen)
+           {
+             _exit(std::stoi(TokenVector.at(i+2).value.value()));
+           } else{expected(toStr(TokenType::closeParen));}
 
-       } else{expected(toStr(TokenType::openParen));}
-     }
+         } else{expected(toStr(TokenType::closeParen));}
+       }else{expected(toStr(TokenType::openParen));}
+       } 
 
 
      // =====================
@@ -62,15 +73,15 @@ void parse()
 
 
      // ADD NEXT FEATURES HERE. THE BELOW EXIT ISNT SUPPOSED TO BE REACHED
-     else {
-       exit(EXIT_FAILURE);
-     }
+     // else {
+     //   exit(EXIT_FAILURE);
+     // }
    }
 }
 
 
 void expected(std::string str)
 {
-  std::cerr<<"Expected: "<<str;
+  std::cerr<<"Expected: "<<str<<std::endl;
   exit(EXIT_FAILURE);
 }

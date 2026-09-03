@@ -1,1 +1,2 @@
-let hello = 512
+let hello = 164
+exit(163)

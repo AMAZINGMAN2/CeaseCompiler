@@ -3,7 +3,10 @@
 #include <iostream>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
+
+
 enum class TokenType
 {
   exit, //exit keyword
@@ -14,6 +17,8 @@ enum class TokenType
   ident_lit,
   eq,
 };
+
+
 
 std::string toStr(TokenType type)
 {
@@ -34,12 +39,28 @@ std::string toStr(TokenType type)
       return "`=`";
   }
 }
-
 struct token // token struct with type because its statically typed
 {
   TokenType type;
   std::optional<std::string> value;
 };
+
+struct identLit
+{
+  token ident_lit;
+};
+
+struct intLit
+{
+  token int_lit;
+};
+
+struct NodeTerm
+{
+  std::variant<intLit*, identLit*> var;
+};
+
+
 std::vector<token> TokenVector;
 void lex(const std::string& fileContents) // the verb of the word lexer
 {
@@ -69,7 +90,6 @@ for (unsigned int index = 0; index < length; index++) {
     {
       TokenVector.push_back({TokenType::let});
     }
-          // IDENTIFIER LITERAL
     else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
       TokenVector.push_back({TokenType::ident_lit, currentToken});
     }
