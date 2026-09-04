@@ -98,12 +98,12 @@ statement parseStatement()
   expected("statement");
 }
 
-
+// PARSEING STATEMENTS
+// use guard clauses for readability
 
 
 exitstmt parseExit()
 {
-
   if(TokenVector.at(i+1).type != TokenType::openParen)
   {
     expected(toStr(TokenType::openParen));
