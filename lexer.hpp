@@ -16,6 +16,10 @@ enum class TokenType
   let, // the let keyword
   ident_lit, // identifier literals. e.g foo or bar
   eq, // =
+  plus,
+  minus,
+  fslash,
+  star,
 };
 
 
@@ -37,6 +41,14 @@ std::string toStr(TokenType type)
       return "identifier";
     case TokenType::eq:
       return "`=`";
+    case TokenType::plus:
+      return "`+`";
+    case TokenType::minus:
+      return "`-`";
+    case TokenType::fslash:
+      return "`/`";
+    case TokenType::star:
+      return "`*`";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -49,6 +61,8 @@ struct token // token struct with type because the programming language is stati
   std::optional<std::string> value;
 };
 
+
+
 struct identLit
 {
   token name;
@@ -59,7 +73,19 @@ struct intLit
   token value;
 };
 
-using Expr = std::variant<intLit, identLit>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+struct binExpr;
+
+using Expr = std::variant<intLit, identLit, binExpr*>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+
+//https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
+// this is for PRECEDENCE CLIMBING
+
+struct binExpr
+{
+  Expr left;
+  token op;
+  Expr right;
+};
 
 struct letstmt
 {
@@ -125,6 +151,14 @@ for (unsigned int index = 0; index < length; index++) {
     TokenVector.push_back({TokenType::int_lit, currentToken});
   } else if (c == '(') {
     TokenVector.push_back({TokenType::openParen});
+  } else if (c == '+') {
+    TokenVector.push_back({TokenType::plus});
+  } else if (c == '-') {
+    TokenVector.push_back({TokenType::minus});
+  } else if (c == '/') {
+    TokenVector.push_back({TokenType::fslash});
+  } else if (c == '*') {
+    TokenVector.push_back({TokenType::star});
   } else if (c == ')') {
     TokenVector.push_back({TokenType::closeParen});
   } else if (c == '=') {

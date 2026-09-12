@@ -1,2 +1,2 @@
-let hello = 164
-exit(hello)
+let x = 3
+exit(x)

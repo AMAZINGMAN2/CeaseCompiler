@@ -5,15 +5,14 @@
 #include <variant>
 #include "lexer.hpp"
 #include "parser.hpp"
-auto program = parse();
 std::unordered_map<std::string, int> variables;
 
 int eval(const intLit& node)
 {
   // return node.value; // returns the integer
   return std::stoi(node.value.value.value()); // returns the integer
-
 }
+
 int eval(const identLit& node)
 {
   auto i = variables.find(node.name.value.value());
@@ -23,6 +22,46 @@ int eval(const identLit& node)
   }
   return i->second; // returns the value of the variable
 }
+
+
+
+// takes care of the Expr variant by splitting its evals to the correct function
+int eval(const Expr& node)
+{
+  return std::visit([](const auto& expr){return eval(expr);}, node);
+}
+
+
+
+int eval(const binExpr& node)
+{
+  // return node.value; // returns the integer
+  if(node.op.type == TokenType::star) 
+  {
+    return std::visit([](const auto& expr){return eval(expr);}, node.left) * std::visit([](const auto& expr){return eval(expr);}, node.right);
+  }
+  if(node.op.type == TokenType::plus) 
+  {
+    return std::visit([](const auto& expr){return eval(expr);}, node.left) + std::visit([](const auto& expr){return eval(expr);}, node.right);
+  }
+  if(node.op.type == TokenType::minus) 
+  {
+    return std::visit([](const auto& expr){return eval(expr);}, node.left) - std::visit([](const auto& expr){return eval(expr);}, node.right);
+  }
+  if(node.op.type == TokenType::fslash) 
+  {
+    return std::visit([](const auto& expr){return eval(expr);}, node.left) / std::visit([](const auto& expr){return eval(expr);}, node.right);
+  }
+  expected("Binary Expression");
+}
+
+// dereferences the binExpr if its a pointer to call the function above
+int eval(const binExpr* node)
+{
+  return eval(*node);
+}
+
+
 void generator(const exitstmt& node)
 {
   std::visit([](auto& value)

@@ -32,6 +32,7 @@ statement parseStatement()
     auto stmt = parseLet();
     return stmt;
   }
+  expected("statement");
 }
 
 // PARSEING STATEMENTS
