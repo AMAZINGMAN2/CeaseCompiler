@@ -22,7 +22,21 @@ enum class TokenType
   star,
 };
 
-
+int prec(TokenType type)
+{
+  switch (type) {
+    case TokenType::plus:
+      return 1;
+    case TokenType::minus:
+      return 1;
+    case TokenType::fslash:
+      return 2;
+    case TokenType::star:
+      return 2;
+    default:
+      return -1;
+  }
+}
 
 std::string toStr(TokenType type)
 {

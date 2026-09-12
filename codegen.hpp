@@ -24,6 +24,8 @@ int eval(const identLit& node)
 }
 
 
+int eval(const binExpr& node);
+int eval(const binExpr* node);
 
 // takes care of the Expr variant by splitting its evals to the correct function
 int eval(const Expr& node)
@@ -38,19 +40,22 @@ int eval(const binExpr& node)
   // return node.value; // returns the integer
   if(node.op.type == TokenType::star) 
   {
-    return std::visit([](const auto& expr){return eval(expr);}, node.left) * std::visit([](const auto& expr){return eval(expr);}, node.right);
+    return eval(node.left) * eval(node.right);
   }
   if(node.op.type == TokenType::plus) 
   {
-    return std::visit([](const auto& expr){return eval(expr);}, node.left) + std::visit([](const auto& expr){return eval(expr);}, node.right);
+
+    return eval(node.left) + eval(node.right);
   }
   if(node.op.type == TokenType::minus) 
   {
-    return std::visit([](const auto& expr){return eval(expr);}, node.left) - std::visit([](const auto& expr){return eval(expr);}, node.right);
+
+    return eval(node.left) - eval(node.right);
   }
   if(node.op.type == TokenType::fslash) 
   {
-    return std::visit([](const auto& expr){return eval(expr);}, node.left) / std::visit([](const auto& expr){return eval(expr);}, node.right);
+
+    return eval(node.left) / eval(node.right);
   }
   expected("Binary Expression");
 }
