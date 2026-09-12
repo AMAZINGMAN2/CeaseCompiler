@@ -14,8 +14,8 @@ enum class TokenType
   closeParen,//close parenthesis `)`
   int_lit, // integer literal e.g 2 or 5
   let, // the let keyword
-  ident_lit,
-  eq,
+  ident_lit, // identifier literals. e.g foo or bar
+  eq, // =
 };
 
 

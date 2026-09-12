@@ -1,2 +1,2 @@
 let hello = 164
-exit(124)
+exit(hello)

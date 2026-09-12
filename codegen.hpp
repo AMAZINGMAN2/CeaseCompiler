@@ -18,7 +18,8 @@ int eval(const identLit& node)
 {
   auto i = variables.find(node.name.value.value());
   if (i == variables.end()) {
-    std::cerr<<"Undefined Variable" << node.name.value.value()<< std::endl;
+    std::cerr<<"Undefined Variable: " << node.name.value.value()<< std::endl;
+    exit(1);
   }
   return i->second; // returns the value of the variable
 }

@@ -3,75 +3,14 @@
 #include <cstdlib>
 
 void expected(std::string str);
-
-// TokenVector
-// void parse()
-// {
-//    for(size_t i = 0; i + 3 < TokenVector.size(); i++)
-//    {
-//
-//      // =====================
-//      // PARSE EXIT
-//      // =====================
-//
-//      if(TokenVector.at(i).type == TokenType::exit)
-//      {
-//        if(TokenVector.at(i+1).type == TokenType::openParen)
-//        {
-//          if(TokenVector.at(i+2).type == TokenType::ident_lit)
-//          {
-//            if(TokenVector.at(i+3).type == TokenType::closeParen)
-//            {
-//              auto name = TokenVector.at(i+2).value.value();
-//              auto it = variables.find(name);
-//              if(it == variables.end())
-//              {
-//                std::cerr << "Undefined variable: " << name << "\n";
-//                exit(EXIT_FAILURE);
-//              }
-//              _exit(it->second);
-//              i+=3; // probably unneccesary
-//            } else{expected(toStr(TokenType::closeParen));}
-//          }
-//          else if (TokenVector.at(i+2).type == TokenType::int_lit) {
-//            if(TokenVector.at(i+3).type == TokenType::closeParen)
-//            {
-//              _exit(std::stoi(TokenVector.at(i+2).value.value()));
-//            } else{expected(toStr(TokenType::closeParen));}
-//
-//          } else{expected(toStr(TokenType::closeParen));}
-//        }else{expected(toStr(TokenType::openParen));}
-//        } 
-//
-//
-//      // =====================
-//      // PARSE LET
-//      // =====================
-//
-//      if(TokenVector.at(i).type == TokenType::let)
-//      {
-//        if(TokenVector.at(i+1).type == TokenType::ident_lit)
-//        {
-//          if(TokenVector.at(i+2).type == TokenType::eq)
-//          {
-//            if(TokenVector.at(i+3).type == TokenType::int_lit)
-//            {
-//              variables[TokenVector.at(i+1).value.value()] = std::stoi(TokenVector.at(i+3).value.value());
-//              // std::cout<<variables["hello"]<<"\n";
-//            }
-//          }
-//        }
-//      }
-//
-//    }
-// }
+token expect(TokenType type);
 
 statement parseStatement();
 size_t i = 0;
 Program parse() // the main parse function looping over all the tokens from the lexer and using the ast
 {
     Program program;
-    for(; i < TokenVector.size(); i++)
+    while(i < TokenVector.size())
     {
       program.statements.push_back(parseStatement());
     }
@@ -86,13 +25,11 @@ statement parseStatement()
   if (TokenVector.at(i).type == TokenType::exit)
   {
     auto stmt = parseExit();
-    i+=3;
     return stmt;
   }
   else if (TokenVector.at(i).type == TokenType::let)
   {
     auto stmt = parseLet();
-    i+=3;
     return stmt;
   }
 }
@@ -100,46 +37,49 @@ statement parseStatement()
 // PARSEING STATEMENTS
 // use guard clauses for readability
 
-
-exitstmt parseExit()
+Expr parseExpr()
 {
-  if(TokenVector.at(i+1).type != TokenType::openParen)
-  {
-    expected(toStr(TokenType::openParen));
-  }
+  token value = TokenVector.at(i++);
 
-  if(TokenVector.at(i+3).type != TokenType::closeParen)
+  if(value.type == TokenType::ident_lit)
   {
-    expected(toStr(TokenType::closeParen));
+    return identLit{value};
   }
-
-  if(TokenVector.at(i+2).type == TokenType::ident_lit)
+  else if(value.type == TokenType::int_lit)
   {
-    return exitstmt{identLit{TokenVector.at(i+2)}};
-  }
-  else if (TokenVector.at(i+2).type == TokenType::int_lit) {
-
-    return exitstmt{intLit{TokenVector.at(i+2)}};
+    return intLit{value};
   }
   expected("identifier or literal");
 }
 
+exitstmt parseExit()
+{
+  expect(TokenType::exit);
+  expect(TokenType::openParen);
+  auto value = parseExpr();
+  expect(TokenType::closeParen);
+  return exitstmt{value};
+}
+
 letstmt parseLet()
 {
-  if(TokenVector.at(i+1).type != TokenType::ident_lit)
-  {
-    expected(toStr(TokenType::ident_lit));
-  }
-  if(TokenVector.at(i+2).type != TokenType::eq)
-  {
-    expected(toStr(TokenType::eq));
-  }
-  if(TokenVector.at(i+3).type != TokenType::int_lit)
-  {
-    expected(toStr(TokenType::int_lit));
-  }
-  return letstmt{TokenVector.at(i+1), intLit{TokenVector.at(i+3)}};
+  expect(TokenType::let);
+  token name = expect(TokenType::ident_lit);
+  expect(TokenType::eq);
+  auto value = parseExpr();
+  return letstmt{name, value};
 }
+
+
+token expect(TokenType type)
+{
+  if(i >= TokenVector.size() || TokenVector.at(i).type != type)
+  {
+    expected(toStr(type));
+  }
+  return TokenVector.at(i++); //increments i after returning it
+}
+
 
 void expected(std::string str)
 {
