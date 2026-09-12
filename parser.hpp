@@ -95,7 +95,6 @@ statement parseStatement()
     i+=3;
     return stmt;
   }
-  expected("statement");
 }
 
 // PARSEING STATEMENTS
