@@ -6,7 +6,7 @@ A compiler made in cpp for the Cease programming language
 
 TODO:
 
-- [ ] error positions
+- [x] error positions
 - [ ] comments
 - [ ] scopes
 - [ ] <, >, ==, !=, <=, >=
