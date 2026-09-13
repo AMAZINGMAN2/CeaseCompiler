@@ -2,7 +2,7 @@
 #include "lexer.hpp"
 #include <cstdlib>
 void expected(std::string str);
-void expected(token currToken);
+void expected(TokenType expectedType, token currToken);
 token expect(TokenType type);
 Expr parseExpr(int minPrec = 0);
 statement parseStatement();
@@ -63,7 +63,7 @@ Expr computeAtom()
     Expr result = computeAtom();
     return new unExpr{value, result};
   }
-  expected("identifier or literal");
+  expected("statement");
 }
 
 
@@ -103,22 +103,27 @@ letstmt parseLet()
 
 token expect(TokenType type)
 {
-  if(i >= TokenVector.size() || TokenVector.at(i).type != type)
+  if(i >= TokenVector.size())
   {
-    expected(TokenVector.at(i-1));
+    std::cerr<<filename<<": error:  Expected "<<toStr(type)<<"got EOF"<<std::endl;
+    exit(EXIT_FAILURE);
+  }
+  if(TokenVector.at(i).type != type)
+  {
+    expected(type, TokenVector.at(i));
   }
   return TokenVector.at(i++); //increments i after returning it
 }
 
 
-void expected(token currToken)
+void expected(TokenType expectedType, token currToken)
 {
-  std::cerr<<filename<<":"<<currToken.line<<":"<<currToken.chr<<": error:  Expected "<<
-    toStr(currToken.type)<<std::endl;
+  std::cerr<<filename<<":"<<currToken.line<<":"<<currToken.chr<<": error: Expected "<<
+    toStr(expectedType)<<" got "<<toStr(currToken.type)<<std::endl;
   exit(EXIT_FAILURE);
 }
 void expected(std::string str)
 {
-  std::cerr<<filename<<"Expected: "<<str<<std::endl;
+  std::cerr<<filename<<":"<<TokenVector.at(i-1).line<<":"<<TokenVector.at(i-1).chr<<": error: Expected "<<str<<std::endl;
   exit(EXIT_FAILURE);
 }

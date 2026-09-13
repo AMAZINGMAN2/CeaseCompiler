@@ -1,3 +1,2 @@
 let x = -(-100 + 3 - 4 )/ 9
-let y
-exit(y)
+exit(g)

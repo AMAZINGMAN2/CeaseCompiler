@@ -156,6 +156,7 @@ for (unsigned int index = 0; index < length; index++) {
       index++;
       c = fileContents[index];
       currentToken += c;
+      chr++;
     }
     if (currentToken == "exit") //exit keyword
     {
