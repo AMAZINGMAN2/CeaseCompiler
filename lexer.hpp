@@ -169,7 +169,13 @@ for (unsigned int index = 0; index < length; index++) {
     else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
       TokenVector.push_back({TokenType::ident_lit, currentToken, tokenline, tokenchr});
     }
-  } 
+  } else if (c == '/' && index + 1 < length && fileContents[index + 1] == '/') {
+    while(index < length && fileContents[index] != '\n')
+    {
+    index++;
+    // chr++;
+    }
+  }
   else if (std::isdigit(c)) {
     size_t tokenline = line;
     size_t tokenchr = chr;

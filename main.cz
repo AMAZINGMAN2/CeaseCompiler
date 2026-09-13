@@ -1,2 +1,3 @@
 let x = -(-100 + 3 - 4 )/ 9
-exit(g)
+// exit(4)
+exit(x) // a comment

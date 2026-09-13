@@ -43,6 +43,10 @@ statement parseStatement()
 
 Expr computeAtom()
 {
+  if(i >= TokenVector.size())
+  {
+    expected("expression");
+  }
   token value = TokenVector.at(i++);
   if(value.type == TokenType::ident_lit)
   {
