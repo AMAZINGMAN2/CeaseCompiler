@@ -1,14 +1,16 @@
 #pragma once
 #include "lexer.hpp"
 #include <cstdlib>
-
 void expected(std::string str);
+void expected(token currToken);
 token expect(TokenType type);
 Expr parseExpr(int minPrec = 0);
 statement parseStatement();
 size_t i = 0;
-Program parse() // the main parse function looping over all the tokens from the lexer and using the ast
+std::string filename;
+Program parse(std::string file) // the main parse function looping over all the tokens from the lexer and using the ast
 {
+  filename = file;
     Program program;
     while(i < TokenVector.size())
     {
@@ -103,14 +105,20 @@ token expect(TokenType type)
 {
   if(i >= TokenVector.size() || TokenVector.at(i).type != type)
   {
-    expected(toStr(type));
+    expected(TokenVector.at(i-1));
   }
   return TokenVector.at(i++); //increments i after returning it
 }
 
 
+void expected(token currToken)
+{
+  std::cerr<<filename<<":"<<currToken.line<<":"<<currToken.chr<<": error:  Expected "<<
+    toStr(currToken.type)<<std::endl;
+  exit(EXIT_FAILURE);
+}
 void expected(std::string str)
 {
-  std::cerr<<"Expected: "<<str<<std::endl;
+  std::cerr<<filename<<"Expected: "<<str<<std::endl;
   exit(EXIT_FAILURE);
 }

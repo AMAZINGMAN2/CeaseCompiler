@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
@@ -73,6 +74,8 @@ struct token // token struct with type because the programming language is stati
 {
   TokenType type;
   std::optional<std::string> value;
+  size_t line;
+  size_t chr;
 };
 
 
@@ -132,6 +135,8 @@ std::vector<token> TokenVector;
 void lex(const std::string& fileContents) // the verb of the word lexer
 {
   auto length = fileContents.length();
+  size_t line = 1;
+  size_t chr = 1;
 
 char c;
 std::string currentToken;
@@ -140,8 +145,11 @@ for (unsigned int index = 0; index < length; index++) {
   c = fileContents[index];
   if (std::isalpha(fileContents[index])) // if is alphabetical
     {
-    currentToken.clear();
-    currentToken+=c;
+      size_t tokenline = line;
+      size_t tokenchr = chr;
+      currentToken.clear();
+      currentToken+=c;
+      chr++;
     // loop while the token is alphanumeric
     while(index+1 < length && std::isalnum(fileContents[index+1]))
     {
@@ -151,44 +159,62 @@ for (unsigned int index = 0; index < length; index++) {
     }
     if (currentToken == "exit") //exit keyword
     {
-      TokenVector.push_back({TokenType::exit});
+      TokenVector.push_back({TokenType::exit, std::nullopt, tokenline, tokenchr});
     }
     else if (currentToken == "let") //exit keyword
     {
-      TokenVector.push_back({TokenType::let});
+      TokenVector.push_back({TokenType::let, std::nullopt, tokenline, tokenchr});
     }
     else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
-      TokenVector.push_back({TokenType::ident_lit, currentToken});
+      TokenVector.push_back({TokenType::ident_lit, currentToken, tokenline, tokenchr});
     }
   } 
   else if (std::isdigit(c)) {
+    size_t tokenline = line;
+    size_t tokenchr = chr;
     currentToken.clear();
     c = fileContents[index];
     currentToken += c;
+    chr++;
     while(index+1 < length && std::isdigit(fileContents[index+1]))
     {
       index++;
       c = fileContents[index];
       currentToken += c;
+      chr++;
     }
-    TokenVector.push_back({TokenType::int_lit, currentToken});
+    TokenVector.push_back({TokenType::int_lit, currentToken, tokenline, tokenchr});
   } else if (c == '(') {
-    TokenVector.push_back({TokenType::openParen});
+    TokenVector.push_back({TokenType::openParen, std::nullopt, line, chr});
+    chr++;
   } else if (c == '+') {
-    TokenVector.push_back({TokenType::plus});
+    TokenVector.push_back({TokenType::plus, std::nullopt, line, chr});
+    chr++;
   } else if (c == '-') {
-    TokenVector.push_back({TokenType::minus});
+    TokenVector.push_back({TokenType::minus, std::nullopt, line, chr});
+    chr++;
   } else if (c == '/') {
-    TokenVector.push_back({TokenType::fslash});
+    TokenVector.push_back({TokenType::fslash, std::nullopt, line, chr});
+    chr++;
   } else if (c == '*') {
-    TokenVector.push_back({TokenType::star});
+    TokenVector.push_back({TokenType::star, std::nullopt, line, chr});
+    chr++;
   } else if (c == ')') {
-    TokenVector.push_back({TokenType::closeParen});
+    TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr});
+    chr++;
   } else if (c == '=') {
-    TokenVector.push_back({TokenType::eq});
+    TokenVector.push_back({TokenType::eq, std::nullopt, line, chr});
+    chr++;
+  } else if (c == '\n') {
+    line++;
+    chr = 1;
+  }  else if (c == '\r') {
+    continue;
+  }else if (std::isspace(c)) {
+    chr++;
   } else if (std::iswspace(c)) {
     continue;
-  } else {
+  }else {
     std::cerr<<"Syntax Error"<<std::endl;
     exit(EXIT_FAILURE);
   }
