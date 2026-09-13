@@ -87,12 +87,21 @@ struct intLit
   token value;
 };
 
-struct binExpr;
+struct binExpr; // binary expression eg. 1 (+) 2
+struct unExpr; // unary expression eg. (-)3
 
-using Expr = std::variant<intLit, identLit, binExpr*>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+using Expr = std::variant<intLit, identLit, binExpr*, unExpr*>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
 
 //https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
 // this is for PRECEDENCE CLIMBING
+
+
+struct unExpr
+{
+  token op;
+  Expr value;
+};
+
 
 struct binExpr
 {

@@ -26,6 +26,8 @@ int eval(const identLit& node)
 
 int eval(const binExpr& node);
 int eval(const binExpr* node);
+int eval(const unExpr& node);
+int eval(const unExpr* node);
 
 // takes care of the Expr variant by splitting its evals to the correct function
 int eval(const Expr& node)
@@ -33,6 +35,20 @@ int eval(const Expr& node)
   return std::visit([](const auto& expr){return eval(expr);}, node);
 }
 
+
+int eval(const unExpr& node)
+{
+  if (node.op.type == TokenType::minus)
+  {
+    return -eval(node.value);
+  }
+}
+
+
+int eval(const unExpr* node)
+{
+      return eval(*node);
+}
 
 
 int eval(const binExpr& node)
@@ -91,15 +107,6 @@ void generator(const Program&  program)
         },statement);
   }
 }
-
-//
-//
-// if(program.value.value())
-// {
-//   ;;
-// }
-
-
 
 void _exit(int n)
 {

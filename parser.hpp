@@ -56,8 +56,12 @@ Expr computeAtom()
     expect(TokenType::closeParen);
     return result;
   }
+  else if(value.type == TokenType::minus)
+  {
+    Expr result = computeAtom();
+    return new unExpr{value, result};
+  }
   expected("identifier or literal");
-
 }
 
 
