@@ -1,3 +1,4 @@
 let x = -(-100 + 3 - 4 )/ 9
-// exit(4)
-exit(x) // a comment
+let y = 5
+// exit(5)
+exit(x + y) // a comment
