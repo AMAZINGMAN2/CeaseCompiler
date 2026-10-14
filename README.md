@@ -83,7 +83,7 @@ cease main.cz
 * [x] error positions
 * [x] comments
 * [x] scopes
-* [ ] reassign variables
+* [x] reassign variables
 * [ ] `<`, `>`, `==`, `!=`, `<=`, `>=`
 * [ ] if/else/elseif/for/while
 * [ ] types instead of let

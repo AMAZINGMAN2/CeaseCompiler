@@ -129,8 +129,16 @@ struct exitstmt
 {
   Expr value;
 };
+
+
+struct assignstmt
+{
+  token name;
+  Expr value;
+};
+
 struct block;
-using statement = std::variant<letstmt, exitstmt, block>; // add all possible statement here
+using statement = std::variant<letstmt, exitstmt, block, assignstmt>; // add all possible statement here
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;

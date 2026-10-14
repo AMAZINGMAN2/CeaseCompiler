@@ -18,7 +18,7 @@ Program parse(std::string file) // the main parse function looping over all the 
     }
     return program;
 }
-
+assignstmt parseAssign();
 block parseBlock();
 exitstmt parseExit();
 letstmt parseLet();
@@ -35,6 +35,10 @@ statement parseStatement()
   else if (TokenVector.at(i).type == TokenType::let)
   {
     return parseLet();
+  }
+  else if (TokenVector.at(i).type == TokenType::ident_lit)
+  {
+    return parseAssign();
   }
   expected("statement");
 }
@@ -117,6 +121,15 @@ block parseBlock()
   expect(TokenType::closeBrace);
   return result;
 }
+
+
+assignstmt parseAssign()
+{
+  token name = expect(TokenType::ident_lit);
+  expect(TokenType::eq);
+  return assignstmt{name, parseExpr()};
+}
+
 
 token expect(TokenType type)
 {

@@ -23,7 +23,7 @@ int eval(const identLit& node)
     }
   }
   std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 
@@ -100,6 +100,22 @@ void generator(const letstmt& node)
         return eval(value);
       }, node.value);
 }
+
+
+void generator(const assignstmt& node)
+{
+  for(auto i = scope.rbegin(); i != scope.rend(); i++)
+  {
+    auto j = i->find(node.name.value.value());
+    if (j != i->end()) {
+      j->second = eval(node.value); // returns the value of the variable
+      return;
+    }
+  }
+  std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
+  exit(EXIT_FAILURE);
+}
+
 void generator(const block& node)
 {
   scope.push_back({});

@@ -1,8 +1,9 @@
 let x = -(-100 + 3 - 4 )/ 9
 let y = 5
 // exit(5)
+y = 4
 {
-  let x = 3
+  let x = y
   exit(x)
 }
 exit(x + y) // a comment
