@@ -82,7 +82,8 @@ cease main.cz
 * [x] undefined variable errors
 * [x] error positions
 * [x] comments
-* [ ] scopes
+* [x] scopes
+* [ ] reassign variables
 * [ ] `<`, `>`, `==`, `!=`, `<=`, `>=`
 * [ ] if/else/elseif/for/while
 * [ ] types instead of let
