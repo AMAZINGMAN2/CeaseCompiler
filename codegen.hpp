@@ -5,7 +5,7 @@
 #include <variant>
 #include "lexer.hpp"
 #include "parser.hpp"
-std::unordered_map<std::string, int> variables;
+std::vector<std::unordered_map<std::string, int>> scope(1); // a vector of hashmaps that contain the variables
 
 int eval(const intLit& node)
 {
@@ -15,12 +15,15 @@ int eval(const intLit& node)
 
 int eval(const identLit& node)
 {
-  auto i = variables.find(node.name.value.value());
-  if (i == variables.end()) {
-    std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
-    exit(1);
+  for(auto i = scope.rbegin(); i != scope.rend(); i++)
+  {
+    auto j = i->find(node.name.value.value());
+    if (j != i->end()) {
+      return j->second; // returns the value of the variable
+    }
   }
-  return i->second; // returns the value of the variable
+  std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
+  exit(1);
 }
 
 
@@ -92,10 +95,21 @@ void generator(const exitstmt& node)
 }
 void generator(const letstmt& node)
 {
-  variables[node.name.value.value()] = std::visit([](auto& value)
+  scope.back()[node.name.value.value()] = std::visit([](auto& value)
       {
         return eval(value);
       }, node.value);
+}
+void generator(const block& node)
+{
+  scope.push_back({});
+  for(const auto& statement : node.statements)
+  {
+    std::visit([](auto& stmt){
+        generator(stmt);
+        },statement);
+  }
+  scope.pop_back();
 }
 
 void generator(const Program&  program)
@@ -107,6 +121,9 @@ void generator(const Program&  program)
         },statement);
   }
 }
+
+
+
 
 void _exit(int n)
 {

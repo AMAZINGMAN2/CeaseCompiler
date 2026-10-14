@@ -19,20 +19,22 @@ Program parse(std::string file) // the main parse function looping over all the 
     return program;
 }
 
-
+block parseBlock();
 exitstmt parseExit();
 letstmt parseLet();
 statement parseStatement()
 {
   if (TokenVector.at(i).type == TokenType::exit)
   {
-    auto stmt = parseExit();
-    return stmt;
+    return parseExit();
+  }
+  if (TokenVector.at(i).type == TokenType::openBrace)
+  {
+    return parseBlock();
   }
   else if (TokenVector.at(i).type == TokenType::let)
   {
-    auto stmt = parseLet();
-    return stmt;
+    return parseLet();
   }
   expected("statement");
 }
@@ -104,6 +106,17 @@ letstmt parseLet()
   return letstmt{name, value};
 }
 
+block parseBlock()
+{
+  expect(TokenType::openBrace);
+  block result;
+  while(i < TokenVector.size() && TokenVector.at(i).type != TokenType::closeBrace)
+  {
+    result.statements.push_back(parseStatement());
+  }
+  expect(TokenType::closeBrace);
+  return result;
+}
 
 token expect(TokenType type)
 {

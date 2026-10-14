@@ -21,6 +21,8 @@ enum class TokenType
   minus,
   fslash,
   star,
+  openBrace,
+  closeBrace,
 };
 
 int prec(TokenType type)
@@ -64,6 +66,10 @@ std::string toStr(TokenType type)
       return "`/`";
     case TokenType::star:
       return "`*`";
+    case TokenType::openBrace:
+      return "`{`";
+    case TokenType::closeBrace:
+      return "`}`";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -123,12 +129,18 @@ struct exitstmt
 {
   Expr value;
 };
-
-using statement = std::variant<letstmt, exitstmt>; // add all possible statement here
+struct block;
+using statement = std::variant<letstmt, exitstmt, block>; // add all possible statement here
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;
 };
+
+struct block{ // a program is a list of statements.
+  std::vector<statement> statements;
+};
+
+
 
 
 std::vector<token> TokenVector;
@@ -205,6 +217,12 @@ for (unsigned int index = 0; index < length; index++) {
     chr++;
   } else if (c == '*') {
     TokenVector.push_back({TokenType::star, std::nullopt, line, chr});
+    chr++;
+  } else if (c == '{') {
+    TokenVector.push_back({TokenType::openBrace, std::nullopt, line, chr});
+    chr++;
+  } else if (c == '}') {
+    TokenVector.push_back({TokenType::closeBrace, std::nullopt, line, chr});
     chr++;
   } else if (c == ')') {
     TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr});
