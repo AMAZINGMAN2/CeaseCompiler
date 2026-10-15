@@ -45,6 +45,7 @@ int eval(const unExpr& node)
   {
     return -eval(node.value);
   }
+  exit(EXIT_FAILURE);
 }
 
 
@@ -77,6 +78,7 @@ int eval(const binExpr& node)
     return eval(node.left) / eval(node.right);
   }
   expected("Binary Expression");
+  exit(EXIT_FAILURE);
 }
 
 // dereferences the binExpr if its a pointer to call the function above

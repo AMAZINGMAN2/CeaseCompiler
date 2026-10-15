@@ -93,14 +93,12 @@ cease main.cz
 * [ ] pointers and adresses
 
 
-## AI USAGE
+## AI USAGE POLICY
 
 This repository uses minimal AI assistance.
 
-Absolutely **NO** code was AI generated.
-
-AI was used to debug a few bugs that weren't found in a decent amount of time.
+Absolutely **NO** code is AI generated.
 
 This README was run through AI for spellchecking, grammar and punctuation.
 
-No AI was used in anything else.
+NO AI was used in anything else.

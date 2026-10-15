@@ -41,6 +41,7 @@ statement parseStatement()
     return parseAssign();
   }
   expected("statement");
+  exit(EXIT_FAILURE);
 }
 
 
@@ -74,6 +75,7 @@ Expr computeAtom()
     return new unExpr{value, result};
   }
   expected("statement");
+  exit(EXIT_FAILURE);
 }
 
 
