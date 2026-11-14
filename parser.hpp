@@ -19,7 +19,7 @@ Program parse(std::string file) // the main parse function looping over all the 
     return program;
 }
 assignstmt parseAssign();
-block parseBlock();
+block* parseBlock();
 exitstmt parseExit();
 letstmt parseLet();
 statement parseStatement()
@@ -62,6 +62,10 @@ Expr computeAtom()
   else if(value.type == TokenType::int_lit)
   {
     return intLit{value};
+  }
+  else if(value.type == TokenType::bool_lit)
+  {
+    return boolLit{value};
   }
   else if (value.type == TokenType::openParen)
   {
@@ -112,13 +116,14 @@ letstmt parseLet()
   return letstmt{name, value};
 }
 
-block parseBlock()
+block* parseBlock()
 {
   expect(TokenType::openBrace);
-  block result;
+  // block result;
+  auto* result = new block;
   while(i < TokenVector.size() && TokenVector.at(i).type != TokenType::closeBrace)
   {
-    result.statements.push_back(parseStatement());
+    result->statements.push_back(parseStatement());
   }
   expect(TokenType::closeBrace);
   return result;

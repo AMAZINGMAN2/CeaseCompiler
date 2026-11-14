@@ -4,6 +4,6 @@ let y = 5
 y = 4
 {
   let x = y
-  exit(x)
+  //exit(x)
 }
-exit(x + y) // a comment
+exit(true != false) // a comment

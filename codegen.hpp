@@ -5,15 +5,24 @@
 #include <variant>
 #include "lexer.hpp"
 #include "parser.hpp"
-std::vector<std::unordered_map<std::string, int>> scope(1); // a vector of hashmaps that contain the variables
+using Value= std::variant<int, bool>;
+std::vector<std::unordered_map<std::string, Value>> scope(1); // a vector of hashmaps that contain the variables
 
-int eval(const intLit& node)
+
+Value eval(const intLit& node)
 {
   // return node.value; // returns the integer
   return std::stoi(node.value.value.value()); // returns the integer
 }
 
-int eval(const identLit& node)
+Value eval(const boolLit& node)
+{
+  return node.value.value.value() == "true";
+}
+
+
+
+Value eval(const identLit& node)
 {
   for(auto i = scope.rbegin(); i != scope.rend(); i++)
   {
@@ -27,62 +36,93 @@ int eval(const identLit& node)
 }
 
 
-int eval(const binExpr& node);
-int eval(const binExpr* node);
-int eval(const unExpr& node);
-int eval(const unExpr* node);
+Value eval(const binExpr& node);
+Value eval(const binExpr* node);
+Value eval(const unExpr& node);
+Value eval(const unExpr* node);
 
 // takes care of the Expr variant by splitting its evals to the correct function
-int eval(const Expr& node)
+Value eval(const Expr& node)
 {
   return std::visit([](const auto& expr){return eval(expr);}, node);
 }
 
 
-int eval(const unExpr& node)
+Value eval(const unExpr& node)
 {
   if (node.op.type == TokenType::minus)
   {
-    return -eval(node.value);
+    return -std::get<int>(eval(node.value));
   }
   exit(EXIT_FAILURE);
 }
 
+int evalInt(const Expr& node)
+{
+  Value value = eval(node);
+  if(!std::holds_alternative<int>(value))
+  {
+    expected("Integer");
+  }
+  return std::get<int>(value);
+}
 
-int eval(const unExpr* node)
+Value eval(const unExpr* node)
 {
       return eval(*node);
 }
 
 
-int eval(const binExpr& node)
+Value eval(const binExpr& node)
 {
   // return node.value; // returns the integer
   if(node.op.type == TokenType::star) 
   {
-    return eval(node.left) * eval(node.right);
+    return std::get<int>(eval(node.left)) * std::get<int>(eval(node.right));
   }
   if(node.op.type == TokenType::plus) 
   {
 
-    return eval(node.left) + eval(node.right);
+    return std::get<int>(eval(node.left)) + std::get<int>(eval(node.right));
   }
   if(node.op.type == TokenType::minus) 
   {
-
-    return eval(node.left) - eval(node.right);
+    return std::get<int>(eval(node.left)) - std::get<int>(eval(node.right));
   }
   if(node.op.type == TokenType::fslash) 
   {
-
-    return eval(node.left) / eval(node.right);
+    return std::get<int>(eval(node.left)) / std::get<int>(eval(node.right));
+  }
+  if(node.op.type == TokenType::greaterthan) 
+  {
+    return std::get<int>(eval(node.left)) > std::get<int>(eval(node.right));
+  }
+  if(node.op.type == TokenType::smallerthan) 
+  {
+    return std::get<int>(eval(node.left)) < std::get<int>(eval(node.right));
+  }
+  if(node.op.type == TokenType::greaterEq) 
+  {
+    return std::get<int>(eval(node.left)) >= std::get<int>(eval(node.right));
+  }
+  if(node.op.type == TokenType::smallerEq) 
+  {
+    return std::get<int>(eval(node.left)) <= std::get<int>(eval(node.right));
+  }
+  if(node.op.type == TokenType::eqEq) 
+  {
+    return eval(node.left) == eval(node.right);
+  }
+  if(node.op.type == TokenType::notEq) 
+  {
+    return eval(node.left) != eval(node.right);
   }
   expected("Binary Expression");
   exit(EXIT_FAILURE);
 }
 
 // dereferences the binExpr if its a pointer to call the function above
-int eval(const binExpr* node)
+Value eval(const binExpr* node)
 {
   return eval(*node);
 }
@@ -90,10 +130,12 @@ int eval(const binExpr* node)
 
 void generator(const exitstmt& node)
 {
-  std::visit([](auto& value)
-      {
-        exit(eval(value));
-      }, node.value);
+  Value value = eval(node.value);
+  if (std::holds_alternative<int>(value))
+  {
+    exit(std::get<int>(value));
+  }
+  exit(std::get<bool>(value));
 }
 void generator(const letstmt& node)
 {
@@ -118,10 +160,10 @@ void generator(const assignstmt& node)
   exit(EXIT_FAILURE);
 }
 
-void generator(const block& node)
+void generator(const block* node)
 {
   scope.push_back({});
-  for(const auto& statement : node.statements)
+  for(const auto& statement : node->statements)
   {
     std::visit([](auto& stmt){
         generator(stmt);

@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iostream>
+#include <new>
 #include <optional>
 #include <string>
 #include <variant>
@@ -23,19 +24,38 @@ enum class TokenType
   star,
   openBrace,
   closeBrace,
+  greaterthan,
+  smallerthan,
+  eqEq,
+  smallerEq,
+  greaterEq,
+  notEq,
+  bool_lit,
 };
 
 int prec(TokenType type)
 {
   switch (type) {
     case TokenType::plus:
-      return 1;
+      return 2;
     case TokenType::minus:
-      return 1;
+      return 2;
     case TokenType::fslash:
-      return 2;
+      return 3;
     case TokenType::star:
-      return 2;
+      return 3;
+    case TokenType::greaterEq:
+      return 1;
+    case TokenType::smallerEq:
+      return 1;
+    case TokenType::greaterthan:
+      return 1;
+    case TokenType::smallerthan:
+      return 1;
+    case TokenType::eqEq:
+      return 0;
+    case TokenType::notEq:
+      return 0;
     default:
       return -1;
   }
@@ -51,11 +71,11 @@ std::string toStr(TokenType type)
     case TokenType::closeParen:
       return "`)`";
     case TokenType::int_lit:
-      return "int literal";
+      return "Int literal";
     case TokenType::let:
       return "let";
     case TokenType::ident_lit:
-      return "identifier";
+      return "Identifier";
     case TokenType::eq:
       return "`=`";
     case TokenType::plus:
@@ -70,6 +90,20 @@ std::string toStr(TokenType type)
       return "`{`";
     case TokenType::closeBrace:
       return "`}`";
+    case TokenType::greaterthan:
+      return "`>`";
+    case TokenType::smallerthan:
+      return "`<`";
+    case TokenType::eqEq:
+      return "`==`";
+    case TokenType::notEq:
+      return "`!=`";
+    case TokenType::greaterEq:
+      return "`>=`";
+    case TokenType::smallerEq:
+      return "`<=`";
+    case TokenType::bool_lit:
+      return "Boolean Expression";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -96,10 +130,17 @@ struct intLit
   token value;
 };
 
+
+struct boolLit
+{
+  token value;
+};
+
+
 struct binExpr; // binary expression eg. 1 (+) 2
 struct unExpr; // unary expression eg. (-)3
 
-using Expr = std::variant<intLit, identLit, binExpr*, unExpr*>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+using Expr = std::variant<intLit, identLit, binExpr*, unExpr*, boolLit>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
 
 //https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
 // this is for PRECEDENCE CLIMBING
@@ -138,7 +179,7 @@ struct assignstmt
 };
 
 struct block;
-using statement = std::variant<letstmt, exitstmt, block, assignstmt>; // add all possible statement here
+using statement = std::variant<letstmt, exitstmt, block*, assignstmt>; // add all possible statement here
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;
@@ -181,6 +222,14 @@ for (unsigned int index = 0; index < length; index++) {
     if (currentToken == "exit") //exit keyword
     {
       TokenVector.push_back({TokenType::exit, std::nullopt, tokenline, tokenchr});
+    }
+    else if (currentToken == "false") //exit keyword
+    {
+      TokenVector.push_back({TokenType::bool_lit, currentToken, tokenline, tokenchr});
+    }
+    else if (currentToken == "true") //exit keyword
+    {
+      TokenVector.push_back({TokenType::bool_lit, currentToken, tokenline, tokenchr});
     }
     else if (currentToken == "let") //exit keyword
     {
@@ -235,10 +284,53 @@ for (unsigned int index = 0; index < length; index++) {
   } else if (c == ')') {
     TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr});
     chr++;
-  } else if (c == '=') {
-    TokenVector.push_back({TokenType::eq, std::nullopt, line, chr});
-    chr++;
-  } else if (c == '\n') {
+  } 
+  else if (c == '=') {
+    if(index + 1 < length && fileContents[index+1] == '=')
+    {
+      TokenVector.push_back({TokenType::eqEq, std::nullopt, line, chr});
+        index++; chr+=2;
+    }
+    else{
+      TokenVector.push_back({TokenType::eq, std::nullopt, line, chr});
+      chr++;
+    }
+  } 
+  else if (c == '!') {
+    if(index + 1 < length && fileContents[index+1] == '=')
+    {
+      TokenVector.push_back({TokenType::notEq, std::nullopt, line, chr});
+        index++; chr+=2;
+    }
+    else{
+      exit(EXIT_FAILURE);
+      TokenVector.push_back({TokenType::eq, std::nullopt, line, chr});
+      chr++;
+    }
+  } 
+  else if (c == '<') {
+    if(index + 1 < length && fileContents[index+1] == '=')
+    {
+      TokenVector.push_back({TokenType::smallerEq, std::nullopt, line, chr});
+        index++; chr+=2;
+    }
+    else{
+      TokenVector.push_back({TokenType::smallerthan, std::nullopt, line, chr});
+      chr++;
+    }
+  } 
+  else if (c == '>') {
+    if(index + 1 < length && fileContents[index+1] == '=')
+    {
+      TokenVector.push_back({TokenType::greaterEq, std::nullopt, line, chr});
+        index++; chr+=2;
+    }
+    else{
+      TokenVector.push_back({TokenType::greaterthan, std::nullopt, line, chr});
+      chr++;
+    }
+  } 
+  else if (c == '\n') {
     line++;
     chr = 1;
   }  else if (c == '\r') {
