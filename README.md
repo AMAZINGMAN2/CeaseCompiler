@@ -84,7 +84,7 @@ cease main.cz
 * [x] comments
 * [x] scopes
 * [x] reassign variables
-* [ ] `<`, `>`, `==`, `!=`, `<=`, `>=`
+* [x] `<`, `>`, `==`, `!=`, `<=`, `>=`
 * [ ] if/else/elseif/for/while
 * [ ] types instead of let
 * [ ] use LLVM IR
