@@ -9,7 +9,8 @@ y = 4
 let f = 7
 if (f < 5) {
   exit(1)
-} else {
+} 
+else {
   exit(f)
 }
 let c = 0

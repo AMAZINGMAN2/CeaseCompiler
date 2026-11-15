@@ -146,6 +146,9 @@ block* parseBlock()
   return result;
 }
 
+// this is for if, while etc etc. very informative
+// craftinginterpreters.com/control-flow.html
+
 ifstmt parseIf(){
   ifstmt result; // has branches (vector) and elsebody (block*)
   expect(TokenType::if_);
