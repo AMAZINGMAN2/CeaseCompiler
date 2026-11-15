@@ -31,6 +31,12 @@ enum class TokenType
   greaterEq,
   notEq,
   bool_lit,
+  if_,
+  else_,
+  elseif_,
+  while_,
+  for_,
+  semi,
 };
 
 int prec(TokenType type)
@@ -104,6 +110,18 @@ std::string toStr(TokenType type)
       return "`<=`";
     case TokenType::bool_lit:
       return "Boolean Expression";
+    case TokenType::if_:
+      return "`if`";
+    case TokenType::else_:
+      return "`else`";
+    case TokenType::elseif_:
+      return "`elseif`";
+    case TokenType::while_:
+      return "`while`";
+    case TokenType::for_:
+      return "for";
+    case TokenType::semi:
+      return "`;`";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -179,7 +197,37 @@ struct assignstmt
 };
 
 struct block;
-using statement = std::variant<letstmt, exitstmt, block*, assignstmt>; // add all possible statement here
+
+
+struct ifbranch
+{
+  Expr cond;
+  block* body;
+};
+
+struct ifstmt
+{
+  std::vector<ifbranch> branches;
+  block* elsebody = nullptr;
+};
+
+
+struct whilestmt
+{
+  Expr cond;
+  block* body;
+};
+
+struct forstmt
+{
+  letstmt init;
+  Expr cond;
+  assignstmt update;
+  block* body;
+};
+
+// add all possible statement here
+using statement = std::variant<letstmt, exitstmt, block*, assignstmt, ifstmt, whilestmt, forstmt>;
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;
@@ -235,6 +283,16 @@ for (unsigned int index = 0; index < length; index++) {
     {
       TokenVector.push_back({TokenType::let, std::nullopt, tokenline, tokenchr});
     }
+    else if (currentToken == "if")
+      TokenVector.push_back({TokenType::if_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "else")
+      TokenVector.push_back({TokenType::else_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "elseif")
+      TokenVector.push_back({TokenType::elseif_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "while")
+      TokenVector.push_back({TokenType::while_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "for")
+      TokenVector.push_back({TokenType::for_, std::nullopt, tokenline, tokenchr});
     else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
       TokenVector.push_back({TokenType::ident_lit, currentToken, tokenline, tokenchr});
     }
@@ -275,7 +333,10 @@ for (unsigned int index = 0; index < length; index++) {
   } else if (c == '*') {
     TokenVector.push_back({TokenType::star, std::nullopt, line, chr});
     chr++;
-  } else if (c == '{') {
+  } else if (c == ';') {
+    TokenVector.push_back({TokenType::semi, std::nullopt, line, chr});
+    chr++;
+  }else if (c == '{') {
     TokenVector.push_back({TokenType::openBrace, std::nullopt, line, chr});
     chr++;
   } else if (c == '}') {

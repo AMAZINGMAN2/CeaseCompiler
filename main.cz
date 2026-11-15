@@ -6,4 +6,23 @@ y = 4
   let x = y
   //exit(x)
 }
-exit(true != false) // a comment
+let f = 7
+if (f < 5) {
+  exit(1)
+} else {
+  exit(f)
+}
+let c = 0
+while (c < 5) {
+  c = c + 1
+}
+exit(c)
+let b = 0 // a comment
+for(let i = 0; i <= 5; i = i + 1)
+{
+  b = b + i
+}
+exit(b)
+
+
+

@@ -67,6 +67,17 @@ int evalInt(const Expr& node)
   return std::get<int>(value);
 }
 
+bool evalBool(const Expr& node)
+{
+  Value value = eval(node);
+  if(!std::holds_alternative<bool>(value))
+  {
+    expected("Boolean");
+  }
+  return std::get<bool>(value);
+}
+
+
 Value eval(const unExpr* node)
 {
       return eval(*node);
@@ -158,6 +169,46 @@ void generator(const assignstmt& node)
   }
   std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
   exit(EXIT_FAILURE);
+}
+
+
+void generator(const block* node);
+
+void generator(const ifstmt& node)
+{
+  for(const auto& branch : node.branches)
+  {
+    if (evalBool(branch.cond))
+    {
+      generator(branch.body);
+      return;
+    }
+  }
+  if (node.elsebody != nullptr)
+  {
+    generator(node.elsebody);
+  }
+}
+
+void generator(const whilestmt& node)
+{
+  while (evalBool(node.cond))
+  {
+    generator(node.body);
+  }
+}
+
+
+void generator(const forstmt& node)
+{
+  scope.push_back({}); // extra scope making sure that the loop var doesnt leak
+  generator(node.init);
+  while (evalBool(node.cond))
+  {
+    generator(node.body);
+    generator(node.update);
+  }
+  scope.pop_back();
 }
 
 void generator(const block* node)

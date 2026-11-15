@@ -85,7 +85,7 @@ cease main.cz
 * [x] scopes
 * [x] reassign variables
 * [x] `<`, `>`, `==`, `!=`, `<=`, `>=`
-* [ ] if/else/elseif/for/while
+* [x] if/else/elseif/for/while
 * [ ] types instead of let
 * [ ] use LLVM IR
 * [ ] More keywords like structs

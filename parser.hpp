@@ -22,8 +22,23 @@ assignstmt parseAssign();
 block* parseBlock();
 exitstmt parseExit();
 letstmt parseLet();
+ifstmt parseIf();
+whilestmt parseWhile();
+forstmt parseFor();
 statement parseStatement()
 {
+  if (TokenVector.at(i).type == TokenType::for_)
+  {
+    return parseFor();
+  }
+  if (TokenVector.at(i).type == TokenType::while_)
+  {
+    return parseWhile();
+  }
+  if (TokenVector.at(i).type == TokenType::if_)
+  {
+    return parseIf();
+  }
   if (TokenVector.at(i).type == TokenType::exit)
   {
     return parseExit();
@@ -107,6 +122,8 @@ exitstmt parseExit()
   return exitstmt{value};
 }
 
+
+
 letstmt parseLet()
 {
   expect(TokenType::let);
@@ -128,6 +145,52 @@ block* parseBlock()
   expect(TokenType::closeBrace);
   return result;
 }
+
+ifstmt parseIf(){
+  ifstmt result; // has branches (vector) and elsebody (block*)
+  expect(TokenType::if_);
+  expect(TokenType::openParen);
+  Expr cond = parseExpr();
+  expect(TokenType::closeParen);
+
+  result.branches.push_back({cond, parseBlock()});
+  while(i < TokenVector.size() && TokenVector.at(i).type == TokenType::elseif_)
+  {
+  expect(TokenType::elseif_);
+    expect(TokenType::openParen);
+    Expr cond = parseExpr();
+    expect(TokenType::closeParen);
+    result.branches.push_back({cond, parseBlock()});
+  }
+  if(i < TokenVector.size() && TokenVector.at(i).type == TokenType::else_)
+  {
+  expect(TokenType::else_);
+    result.elsebody = parseBlock();
+  }
+  return result;
+}
+
+whilestmt parseWhile(){
+  expect(TokenType::while_);
+  expect(TokenType::openParen);
+  Expr cond = parseExpr();
+  expect(TokenType::closeParen);
+  return whilestmt{cond, parseBlock()};
+}
+
+
+forstmt parseFor(){
+  expect(TokenType::for_);
+  expect(TokenType::openParen);
+  letstmt init = parseLet();
+  expect(TokenType::semi);
+  Expr cond = parseExpr();
+  expect(TokenType::semi);
+  assignstmt update = parseAssign();
+  expect(TokenType::closeParen);
+  return forstmt{init, cond, update, parseBlock()};
+}
+
 
 
 assignstmt parseAssign()
