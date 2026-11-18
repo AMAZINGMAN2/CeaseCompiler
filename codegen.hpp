@@ -5,8 +5,22 @@
 #include <variant>
 #include "lexer.hpp"
 #include "parser.hpp"
-using Value= std::variant<int, bool>;
+using Value= std::variant<int, bool, double, char>; // default float is 64bit and therefore a double
 std::vector<std::unordered_map<std::string, Value>> scope(1); // a vector of hashmaps that contain the variables
+
+
+
+
+Value eval(const floatLit& node)
+{
+  return std::stod(node.value.value.value()); 
+}
+
+
+Value eval(const charLit& node)
+{
+  return node.value.value.value()[0];
+}
 
 
 Value eval(const intLit& node)

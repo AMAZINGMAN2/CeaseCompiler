@@ -2,8 +2,6 @@
 #include "lexer.hpp"
 #include <cstdlib>
 void expected(std::string str);
-void expected(TokenType expectedType, token currToken);
-token expect(TokenType type);
 Expr parseExpr(int minPrec = 0);
 statement parseStatement();
 size_t i = 0;
@@ -25,6 +23,10 @@ letstmt parseLet();
 ifstmt parseIf();
 whilestmt parseWhile();
 forstmt parseFor();
+void expected(TokenType expectedType, token currToken);
+token expect(TokenType type);
+bool isTypeToken(TokenType type);
+
 statement parseStatement()
 {
   if (TokenVector.at(i).type == TokenType::for_)
@@ -47,13 +49,13 @@ statement parseStatement()
   {
     return parseBlock();
   }
-  else if (TokenVector.at(i).type == TokenType::let)
-  {
-    return parseLet();
-  }
   else if (TokenVector.at(i).type == TokenType::ident_lit)
   {
     return parseAssign();
+  }
+  else if(isTypeToken(TokenVector.at(i).type))
+  {
+    return parseLet();
   }
   expected("statement");
   exit(EXIT_FAILURE);
@@ -81,6 +83,14 @@ Expr computeAtom()
   else if(value.type == TokenType::bool_lit)
   {
     return boolLit{value};
+  }
+  else if(value.type == TokenType::float_lit)
+  {
+    return floatLit{value};
+  }
+  else if(value.type == TokenType::char_lit)
+  {
+    return charLit{value};
   }
   else if (value.type == TokenType::openParen)
   {
@@ -126,11 +136,23 @@ exitstmt parseExit()
 
 letstmt parseLet()
 {
-  expect(TokenType::let);
+
+  if(i >= TokenVector.size() || !isTypeToken(TokenVector.at(i).type))
+  {
+    expected("type");
+  }
+  // if(TokenVector.at(i).type != TokenType::int_ && TokenVector.at(i).type != TokenType::float_ && TokenVector.at(i).type != TokenType::char_ && TokenVector.at(i).type != TokenType::bool_)
+  // {
+  //   expected("initializer");
+  // }
+  // i++;
+  // token name = expect(TokenType::ident_lit);
+  // expect(TokenType::eq);
+  // auto value = parseExpr();
+  TokenType type = TokenVector.at(i++).type;
   token name = expect(TokenType::ident_lit);
   expect(TokenType::eq);
-  auto value = parseExpr();
-  return letstmt{name, value};
+  return letstmt{type, name, parseExpr()};
 }
 
 block* parseBlock()
@@ -204,6 +226,12 @@ assignstmt parseAssign()
 }
 
 
+bool isTypeToken(TokenType type)
+{
+  return type == TokenType::int_ || type == TokenType::float_ || type == TokenType::bool_  || type == TokenType::char_;
+}
+
+
 token expect(TokenType type)
 {
   if(i >= TokenVector.size())
@@ -219,6 +247,7 @@ token expect(TokenType type)
 }
 
 
+
 void expected(TokenType expectedType, token currToken)
 {
   std::cerr<<filename<<":"<<currToken.line<<":"<<currToken.chr<<": error: Expected "<<
@@ -227,6 +256,6 @@ void expected(TokenType expectedType, token currToken)
 }
 void expected(std::string str)
 {
-  std::cerr<<filename<<":"<<TokenVector.at(i-1).line<<":"<<TokenVector.at(i-1).chr<<": error: Expected "<<str<<std::endl;
+  std::cerr<<filename<<":"<<TokenVector.at(i>0? i-1:0).line<<":"<<TokenVector.at(i>0? i-1:0).chr<<": error: Expected "<<str<<std::endl;
   exit(EXIT_FAILURE);
 }

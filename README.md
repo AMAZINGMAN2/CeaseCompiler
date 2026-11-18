@@ -87,10 +87,10 @@ cease main.cz
 * [x] `<`, `>`, `==`, `!=`, `<=`, `>=`
 * [x] if/else/elseif/for/while
 * [ ] types instead of let
-* [ ] use LLVM IR
 * [ ] More keywords like structs
 * [ ] more advanced types
 * [ ] pointers and adresses
+* [ ] use LLVM IR
 
 
 ## AI USAGE POLICY

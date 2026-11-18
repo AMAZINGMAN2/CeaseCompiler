@@ -1,6 +1,8 @@
 #pragma once
+// #include "parser.hpp"
 #include <cstddef>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
 #include <new>
 #include <optional>
@@ -9,9 +11,10 @@
 #include <vector>
 
 
+void expected(std::string str);
 enum class TokenType
 {
-  exit, //exit keyword
+  exit, //exit keywor, filenamed
   openParen, //open parenthesis `(`
   closeParen,//close parenthesis `)`
   int_lit, // integer literal e.g 2 or 5
@@ -37,6 +40,12 @@ enum class TokenType
   while_,
   for_,
   semi,
+  int_,
+  float_,
+  bool_,
+  char_,
+  float_lit,
+  char_lit,
 };
 
 int prec(TokenType type)
@@ -122,6 +131,18 @@ std::string toStr(TokenType type)
       return "for";
     case TokenType::semi:
       return "`;`";
+    case TokenType::int_:
+      return "int";
+    case TokenType::float_:
+      return "float";
+    case TokenType::bool_:
+      return "bool";
+    case TokenType::char_:
+      return "char";
+    case TokenType::float_lit:
+      return "float";
+    case TokenType::char_lit:
+      return "char";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -135,8 +156,6 @@ struct token // token struct with type because the programming language is stati
   size_t line;
   size_t chr;
 };
-
-
 
 struct identLit
 {
@@ -154,11 +173,20 @@ struct boolLit
   token value;
 };
 
+struct floatLit
+{
+  token value;
+};
+
+struct charLit
+{
+  token value;
+};
 
 struct binExpr; // binary expression eg. 1 (+) 2
 struct unExpr; // unary expression eg. (-)3
 
-using Expr = std::variant<intLit, identLit, binExpr*, unExpr*, boolLit>; // AN EXPRESION IS EITHER AN INTEGER LITERAL OR AN IDENTIFIER
+using Expr = std::variant<intLit, identLit, binExpr*, unExpr*, boolLit, floatLit, charLit>; // alias
 
 //https://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing
 // this is for PRECEDENCE CLIMBING
@@ -180,6 +208,7 @@ struct binExpr
 
 struct letstmt
 {
+  TokenType type;
   token name;
   Expr value;
 };
@@ -239,9 +268,8 @@ struct block{ // a program is a list of statements.
 
 
 
-
 std::vector<token> TokenVector;
-void lex(const std::string& fileContents) // the verb of the word lexer
+void lex(const std::string& fileContents)// the verb of the word lexer
 {
   auto length = fileContents.length();
   size_t line = 1;
@@ -279,10 +307,6 @@ for (unsigned int index = 0; index < length; index++) {
     {
       TokenVector.push_back({TokenType::bool_lit, currentToken, tokenline, tokenchr});
     }
-    else if (currentToken == "let") //exit keyword
-    {
-      TokenVector.push_back({TokenType::let, std::nullopt, tokenline, tokenchr});
-    }
     else if (currentToken == "if")
       TokenVector.push_back({TokenType::if_, std::nullopt, tokenline, tokenchr});
     else if (currentToken == "else")
@@ -291,6 +315,14 @@ for (unsigned int index = 0; index < length; index++) {
       TokenVector.push_back({TokenType::elseif_, std::nullopt, tokenline, tokenchr});
     else if (currentToken == "while")
       TokenVector.push_back({TokenType::while_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "int")
+      TokenVector.push_back({TokenType::int_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "float")
+      TokenVector.push_back({TokenType::float_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "bool")
+      TokenVector.push_back({TokenType::bool_, std::nullopt, tokenline, tokenchr});
+    else if (currentToken == "char")
+      TokenVector.push_back({TokenType::char_, std::nullopt, tokenline, tokenchr});
     else if (currentToken == "for")
       TokenVector.push_back({TokenType::for_, std::nullopt, tokenline, tokenchr});
     else { // add IF for any characters that cannot be accepted in indentifiers. or any exceptions
@@ -307,17 +339,19 @@ for (unsigned int index = 0; index < length; index++) {
     size_t tokenline = line;
     size_t tokenchr = chr;
     currentToken.clear();
-    c = fileContents[index];
-    currentToken += c;
+    bool isFloat = false;
     chr++;
-    while(index+1 < length && std::isdigit(fileContents[index+1]))
+    while((index < length) && (std::isdigit(fileContents[index]) || (!isFloat && fileContents[index] == '.')))
     {
-      index++;
-      c = fileContents[index];
-      currentToken += c;
+      if(fileContents[index] == '.') {isFloat = true;}
+      currentToken += fileContents[index++];
+      // index++;
+      // c = fileContents[index];
+      // currentToken += c;
       chr++;
     }
-    TokenVector.push_back({TokenType::int_lit, currentToken, tokenline, tokenchr});
+    index--;
+    TokenVector.push_back({isFloat? TokenType::float_lit : TokenType::int_lit, currentToken, tokenline, tokenchr});
   } else if (c == '(') {
     TokenVector.push_back({TokenType::openParen, std::nullopt, line, chr});
     chr++;
@@ -345,7 +379,17 @@ for (unsigned int index = 0; index < length; index++) {
   } else if (c == ')') {
     TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr});
     chr++;
+  } else if (c == '\'') {
+    chr++;
+    index++;
+    if(index >= length){expected("closing '");}
+    char value = fileContents[index++];
+    chr++;
+    if (index >= length || fileContents[index] != '\''){expected("closing '");}
+    chr++;
+    TokenVector.push_back({TokenType::char_lit,std::string(1, value), line, chr-3}); // create copy of value
   } 
+
   else if (c == '=') {
     if(index + 1 < length && fileContents[index+1] == '=')
     {
@@ -410,3 +454,11 @@ for (unsigned int index = 0; index < length; index++) {
   // std::cout<<"lexed"<<std::endl;
 }
 
+
+
+//
+// void expected(std::string str)
+// {
+//   std::cerr<<filenamee<<":"<<TokenVector.at(i-1).line<<":"<<TokenVector.at(i-1).chr<<": error: Expected "<<str<<std::endl;
+//   exit(EXIT_FAILURE);
+// }
