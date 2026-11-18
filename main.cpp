@@ -5,6 +5,7 @@
 #include "codegen.hpp"
 #include "lexer.hpp"
 #include "parser.hpp"
+#include "typechecker.hpp"
 int main (int argc, char *argv[]) {
   if(argc != 2)
   {
@@ -29,7 +30,9 @@ int main (int argc, char *argv[]) {
   file.close();
   //putting the file into a string, may cause files to only have a size of unsigned int64?? but thats probably more than enough.
   lex(fileContents);
-  generator(parse((std::string)argv[1]));
+  auto program = parse((std::string)argv[1]);
+  typeCheck(program);
+  generator(program);
   //tokenizing the text inside the file into a vector for now, might change to hashmap or ordered_map or somthing later
   return 0;
 }
