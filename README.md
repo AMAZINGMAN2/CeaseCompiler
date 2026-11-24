@@ -88,7 +88,7 @@ cease main.cz
 * [x] if/else/elseif/for/while
 * [x] types instead of let
 * [ ] pointers and adresses
-* [ ] More keywords like structs
+* [ ] functions, structs, classes etc etc
 * [ ] use LLVM IR
 
 

@@ -3,8 +3,8 @@ int y = 5
 // exit(5)
 y = 4
 {
-  bool x = false
-  exit(x)
+  bool x = false // false is 0, true is 1
+  exit(x) // returns 0
 }
 int f = 7
 if (f < 5) {
