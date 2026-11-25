@@ -1,12 +1,17 @@
 #pragma once
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <memory>
 #include <unordered_map>
 #include <variant>
 #include "lexer.hpp"
 #include "parser.hpp"
-using Value= std::variant<int, bool, double, char>; // default float is 64bit and therefore a double
-std::vector<std::unordered_map<std::string, Value>> scope(1); // a vector of hashmaps that contain the variables
+struct Cell;
+using Value= std::variant<int, bool, double, char, std::shared_ptr<Cell>>; // default float is 64bit and therefore a double
+struct Cell
+{Value val;};
+std::vector<std::unordered_map<std::string, std::shared_ptr<Cell>>> scope(1); // a vector of hashmaps that contain the variables
 
 
 
@@ -42,7 +47,7 @@ Value eval(const identLit& node)
   {
     auto j = i->find(node.name.value.value());
     if (j != i->end()) {
-      return j->second; // returns the value of the variable
+      return j->second->val; // returns the value of the variable
     }
   }
   std::cerr<<filename<<":"<<node.name.line<<":"<<node.name.chr<<" error: Undefined Variable '" << node.name.value.value()<<"'"<<std::endl;
@@ -50,6 +55,7 @@ Value eval(const identLit& node)
 }
 
 
+std::shared_ptr<Cell> evalCell(const Expr& expr);
 Value eval(const binExpr& node);
 Value eval(const binExpr* node);
 Value eval(const unExpr& node);
@@ -64,6 +70,14 @@ Value eval(const Expr& node)
 
 Value eval(const unExpr& node)
 {
+  if(node.op.type == TokenType::amp) 
+  {
+    return evalCell(node.value);
+  }
+  if(node.op.type == TokenType::star) 
+  {
+    return std::get<std::shared_ptr<Cell>>(eval(node.value))->val;
+  }
   if (node.op.type == TokenType::minus)
   {
     return -std::get<int>(eval(node.value));
@@ -152,6 +166,26 @@ Value eval(const binExpr* node)
   return eval(*node);
 }
 
+std::shared_ptr<Cell> evalCell(const Expr& expr)
+{
+  if(std::holds_alternative<identLit>(expr))
+  {
+    const auto& name = std::get<identLit>(expr).name.value.value();
+    for (auto i = scope.rbegin(); i != scope.rend(); i++)
+    {
+      if(auto j = i->find(name); j != i->end()) 
+        return j->second;
+    }
+  }
+  else if(std::holds_alternative<unExpr*>(expr) && std::get<unExpr*>(expr)->op.type == TokenType::star)
+  {
+    return std::get<std::shared_ptr<Cell>>(eval(std::get<unExpr*>(expr)->value));
+  }
+  exit(EXIT_FAILURE);
+}
+
+
+
 
 void generator(const exitstmt& node)
 {
@@ -164,12 +198,13 @@ void generator(const exitstmt& node)
 }
 void generator(const letstmt& node)
 {
-  scope.back()[node.name.value.value()] = std::visit([](auto& value)
-      {
-        return eval(value);
-      }, node.value);
+  scope.back()[node.name.value.value()] = std::make_shared<Cell>(Cell{eval(node.value)});
 }
 
+void generator(const deref& node)
+{
+  evalCell(node.target)->val = eval(node.value);
+}
 
 void generator(const assignstmt& node)
 {
@@ -177,7 +212,7 @@ void generator(const assignstmt& node)
   {
     auto j = i->find(node.name.value.value());
     if (j != i->end()) {
-      j->second = eval(node.value); // returns the value of the variable
+      j->second->val = eval(node.value); // returns the value of the variable
       return;
     }
   }

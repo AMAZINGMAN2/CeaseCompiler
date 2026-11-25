@@ -40,9 +40,9 @@ LLVM is unmatched in terms of optimisation and is the obvious choice that the va
 
 The syntax in the programming language aims to be close to C while balancing keystrokes, readability and traditional keywords.
 
-No semicolons makes code more readable, and the error messages can still be decent.
+Although semicolons makes code a cluttered it significantly improves the error messages
 
-For example, using `//` for comments, `int` for integers, and not implementing `i8` or `u8` like Rust, for example, because it introduces ambiguity and makes the code unreadable.
+For readability we use `//` for comments, `int` for integers, not implementing `i8` or `u8` like Rust, because it introduces ambiguity and makes the code harder to read. This also keeps the syntax close to C's
 
 ## Errors
 
@@ -87,7 +87,7 @@ cease main.cz
 * [x] `<`, `>`, `==`, `!=`, `<=`, `>=`
 * [x] if/else/elseif/for/while
 * [x] types instead of let
-* [ ] pointers and adresses
+* [x] pointers and adresses
 * [ ] functions, structs, classes etc etc
 * [ ] use LLVM IR
 

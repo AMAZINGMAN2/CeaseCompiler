@@ -1,5 +1,6 @@
 #pragma once
 // #include "parser.hpp"
+// #include "typechecker.hpp"
 #include <cstddef>
 #include <cstdlib>
 #include <ios>
@@ -46,6 +47,7 @@ enum class TokenType
   char_,
   float_lit,
   char_lit,
+  amp,
 };
 
 int prec(TokenType type)
@@ -143,6 +145,8 @@ std::string toStr(TokenType type)
       return "float";
     case TokenType::char_lit:
       return "char";
+    case TokenType::amp:
+      return "`&`";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -156,6 +160,18 @@ struct token // token struct with type because the programming language is stati
   size_t line;
   size_t chr;
 };
+
+struct typeInfo // for pointers and making sure that variables of types int* or int** are handled correctly
+{
+  TokenType base;
+  int depth;
+  bool operator==(const typeInfo& o) const // overloading ==
+  {
+    return base == o.base && depth == o.depth;
+  } // returns const
+  bool operator!=(const typeInfo& o) const{return !(*this == o);} // overloads !=
+};
+
 
 struct identLit
 {
@@ -198,6 +214,13 @@ struct unExpr
   Expr value;
 };
 
+struct deref
+{
+  Expr target;
+  Expr value;
+};
+
+
 
 struct binExpr
 {
@@ -208,7 +231,7 @@ struct binExpr
 
 struct letstmt
 {
-  TokenType type;
+  typeInfo type;
   token name;
   Expr value;
 };
@@ -256,7 +279,7 @@ struct forstmt
 };
 
 // add all possible statement here
-using statement = std::variant<letstmt, exitstmt, block*, assignstmt, ifstmt, whilestmt, forstmt>;
+using statement = std::variant<letstmt, exitstmt, block*, assignstmt, ifstmt, whilestmt, forstmt, deref>;
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;
@@ -353,32 +376,25 @@ for (unsigned int index = 0; index < length; index++) {
     index--;
     TokenVector.push_back({isFloat? TokenType::float_lit : TokenType::int_lit, currentToken, tokenline, tokenchr});
   } else if (c == '(') {
-    TokenVector.push_back({TokenType::openParen, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::openParen, std::nullopt, line, chr++});
   } else if (c == '+') {
-    TokenVector.push_back({TokenType::plus, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::plus, std::nullopt, line, chr++});
+  } else if (c == '&') {
+    TokenVector.push_back({TokenType::amp, std::nullopt, line, chr++});
   } else if (c == '-') {
-    TokenVector.push_back({TokenType::minus, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::minus, std::nullopt, line, chr++});
   } else if (c == '/') {
-    TokenVector.push_back({TokenType::fslash, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::fslash, std::nullopt, line, chr++});
   } else if (c == '*') {
-    TokenVector.push_back({TokenType::star, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::star, std::nullopt, line, chr++});
   } else if (c == ';') {
-    TokenVector.push_back({TokenType::semi, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::semi, std::nullopt, line, chr++});
   }else if (c == '{') {
-    TokenVector.push_back({TokenType::openBrace, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::openBrace, std::nullopt, line, chr++});
   } else if (c == '}') {
-    TokenVector.push_back({TokenType::closeBrace, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::closeBrace, std::nullopt, line, chr++});
   } else if (c == ')') {
-    TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr});
-    chr++;
+    TokenVector.push_back({TokenType::closeParen, std::nullopt, line, chr++});
   } else if (c == '\'') {
     chr++;
     index++;

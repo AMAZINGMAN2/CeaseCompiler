@@ -1,29 +1,46 @@
-int x = -(-100 + 3 - 4 )/ 9
-int y = 5
-// exit(5)
-y = 4
+int x = 10;
+int* p = &x;
+int** pp = &p;
+
+*p = 25;
+**pp = *p + 17; // 25 + 17 = 42
+
+int y = 0;
 {
-  bool x = false // false is 0, true is 1
-  exit(x) // returns 0
+    int* inner = &y;
+    *inner = 5;
 }
-int f = 7
+
+if (p == &x) {
+    exit(**pp + y); // 42 + 5 = 47
+}
+
+
+
+//exit(x)
+y = 4;
+{
+  bool x = false; // false is 0, true is 1
+  exit(x); // returns 0
+}
+int f = 7;
 if (f < 5) {
-  exit(1)
+  exit(1);
 } 
 else {
-  exit(f)
+  exit(f);
 }
-int c = 0
+int c = 0;
 while (c < 5) {
-  c = c + 1
+  c = c + 1;
 }
-exit(c)
-int b = 0 // a comment
+exit(c);
+int b = 0; // a comment
 for(int i = 0; i <= 5; i = i + 1)
 {
-  b = b + i
+  b = b + i;
 }
-exit(b)
+exit(b);
 
 
 

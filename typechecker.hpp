@@ -13,16 +13,26 @@ enum class dataType
   int_, float_, bool_, char_
 };
 
-std::string toStr(dataType type);
+
+struct type
+{
+  dataType base;
+  int depth;
+  bool operator==(const type& o) const {return base == o.base && depth == o.depth;}
+  bool operator!=(const type& o) const {return !(*this == o);}
+};
+
+std::string toStr(dataType t);
+std::string toStr(type t);
 dataType tokenToType(TokenType token);
 void typeError(const token& tok, const std::string& str);
-std::vector<std::unordered_map<std::string, dataType>> typeScope(1);
+std::vector<std::unordered_map<std::string, type>> typeScope(1);
 
-dataType checkExpr(const identLit& node);
-dataType checkExpr(const unExpr *node);
-dataType checkExpr(const binExpr& node);
-dataType checkExpr(const binExpr *node);
-dataType checkExpr(const Expr& expr);
+type checkExpr(const identLit& node);
+type checkExpr(const unExpr *node);
+type checkExpr(const binExpr& node);
+type checkExpr(const binExpr *node);
+type checkExpr(const Expr& expr);
 void checkStmt(const block* node);
 void checkStmt(const forstmt& node);
 void checkStmt(const whilestmt& node);
@@ -30,11 +40,11 @@ void checkStmt(const assignstmt& node);
 void checkStmt(const letstmt& node);
 void checkStmt(const ifstmt& node);
 
-dataType checkExpr(const intLit&){return dataType::int_;}
-dataType checkExpr(const floatLit&){return dataType::float_;}
-dataType checkExpr(const boolLit&){return dataType::bool_;}
-dataType checkExpr(const charLit&){return dataType::char_;}
-dataType checkExpr(const identLit& node)
+type checkExpr(const intLit&){return {dataType::int_,0};}
+type checkExpr(const floatLit&){return {dataType::float_,0};}
+type checkExpr(const boolLit&){return {dataType::bool_,0};}
+type checkExpr(const charLit&){return {dataType::char_,0};}
+type checkExpr(const identLit& node)
 {
   for(auto i = typeScope.rbegin(); i != typeScope.rend(); i++)
   {
@@ -43,27 +53,45 @@ dataType checkExpr(const identLit& node)
     {return found->second;}
   }
   typeError(node.name, "Undefined variable '" + node.name.value.value() + "'");
-  return dataType::int_;
+  return {dataType::int_, 0};
 }
 
-dataType checkExpr(const unExpr&  node)
+type checkExpr(const unExpr&  node)
 {
   if (node.op.type == TokenType::minus)
   {
-    dataType inner = checkExpr(node.value);
-    if(inner != dataType::int_  && inner != dataType::float_)
+    type inner = checkExpr(node.value);
+    if(inner.depth != 0 || (inner.base != dataType::int_ && inner.base != dataType::float_))
     {
-    typeError(node.op, "Unary '-' requires int or float, got " + toStr(inner));
+    typeError(node.op, "Unary '-' requires int or float, got " + toStr(inner.base));
     }
     return inner;
   }
+  else if(node.op.type == TokenType::amp)
+  {
+    if (!std::holds_alternative<identLit>(node.value) && !(std::holds_alternative<unExpr*>(node.value) && std::get<unExpr*>(node.value)->op.type == TokenType::star))
+      {
+      typeError(node.op,"Cannot take address of rvalue");
+    }
+    type inner = checkExpr(node.value);
+    return {inner.base, inner.depth + 1};
+  }
+  else if(node.op.type == TokenType::star)
+  {
+    type inner = checkExpr(node.value);
+    if(inner.depth == 0)
+    {
+      typeError(node.op ,"Cannot dereference non pointer \'" + toStr(inner.base) + "\'");
+    }
+    return {inner.base, inner.depth - 1};
+  }
   typeError(node.op, "Unsupported unary operator");
-  return dataType::int_;
+  return {dataType::int_,0};
 }
 
 
 
-dataType checkExpr(const unExpr *node)
+type checkExpr(const unExpr *node)
 {
   return checkExpr(*node);
 }
@@ -71,28 +99,28 @@ dataType checkExpr(const unExpr *node)
 
 
 
-dataType checkExpr(const binExpr& node)
+type checkExpr(const binExpr& node)
 {
-  dataType left = checkExpr(node.left);
-  dataType right = checkExpr(node.right);
+  type left = checkExpr(node.left);
+  type right = checkExpr(node.right);
   TokenType op = node.op.type;
 
 if (op == TokenType::plus || op == TokenType::minus || op == TokenType::star || op == TokenType::fslash)
 {
-  if (left != right || (left != dataType::int_ && left != dataType::float_))
+  if (left != right || left.depth != 0 ||(left.base != dataType::int_ && left.base != dataType::float_))
   {
-    typeError(node.op, "Invalid arthmetic" + toStr(left) + " and " + toStr(right));
+    typeError(node.op, "Invalid arthmetic" + toStr(left.base) + " and " + toStr(right.base));
   }
   return left;
 }
 
 if (op == TokenType::greaterthan || op == TokenType::smallerthan || op == TokenType::greaterEq || op == TokenType::smallerEq)
 {
-  if (left != right || left == dataType::bool_)
+  if (left != right || left.depth != 0 || left.base == dataType::bool_)
   {
-    typeError(node.op, "Cannot compare" + toStr(left) + " and " + toStr(right));
+    typeError(node.op, "Cannot compare" + toStr(left.base) + " and " + toStr(right.base));
   }
-  return dataType::bool_;
+  return {dataType::bool_,0};
 }
 
 
@@ -100,24 +128,24 @@ if (op == TokenType::eqEq || op == TokenType::notEq)
 {
   if (left != right)
   {
-    typeError(node.op, "Cannot compare" + toStr(left) + " and " + toStr(right));
+    typeError(node.op, "Cannot compare" + toStr(left.base) + " and " + toStr(right.base));
   }
-  return dataType::bool_;
+  return {dataType::bool_,0};
 }
 
 typeError(node.op, "Unknown binary operator");
-  return dataType::int_;
+  return {dataType::int_,0};
 }
 
 
-dataType checkExpr(const binExpr *node)
+type checkExpr(const binExpr *node)
 {
   return checkExpr(*node);
 }
 
 
 
-dataType checkExpr(const Expr& expr)
+type checkExpr(const Expr& expr)
 {
   return std::visit([](const auto& node){return checkExpr(node);}, expr);
 }
@@ -126,15 +154,25 @@ void checkStmt(const block* node);
 
 void checkStmt(const letstmt& node)
 {
-  if(tokenToType(node.type) != checkExpr(node.value))
+  type declared{tokenToType(node.type.base), node.type.depth};
+  if(declared != checkExpr(node.value))
   {
     typeError(node.name, "Type mismatch of \'"+ node.name.value.value()+"\'");
   }
-  if(!typeScope.back().emplace(node.name.value.value(), tokenToType(node.type)).second)
+  if(!typeScope.back().emplace(node.name.value.value(), declared).second)
   {
     typeError(node.name, "Redeclaration of \'" + node.name.value.value() + "\'");
   }
 }
+
+void checkStmt(const deref& node)
+{
+  if(checkExpr(node.target) != checkExpr(node.value))
+  {
+    typeError(TokenVector.at(0), "Type mismatch in pointer assignment");
+  }
+}
+
 
 
 void checkStmt(const assignstmt& node)
@@ -146,7 +184,7 @@ void checkStmt(const assignstmt& node)
     {
       if(found->second != checkExpr(node.value))
       {
-        typeError(node.name,"Cannot assign \'" + toStr(checkExpr(node.value)) + "\'");
+        typeError(node.name,"Cannot assign \'" + toStr(checkExpr(node.value).base) + "\'");
       }
       return;
     }
@@ -157,7 +195,7 @@ void checkStmt(const assignstmt& node)
 void checkStmt(const ifstmt& node)
 {
   for (const auto& branch : node.branches) {
-    if(checkExpr(branch.cond) != dataType::bool_)
+    if(checkExpr(branch.cond) != type{dataType::bool_,0})
     {
       std::cerr << filename << ": error: 'if' condition must be a boolean" << std::endl;
       exit(EXIT_FAILURE);
@@ -170,7 +208,7 @@ void checkStmt(const ifstmt& node)
 
 void checkStmt(const whilestmt& node)
 {
-    if(checkExpr(node.cond)!= dataType::bool_)
+    if(checkExpr(node.cond) != type{dataType::bool_,0})
     {
       std::cerr << filename << ": error: 'while' condition must be a boolean" << std::endl;
       exit(EXIT_FAILURE);
@@ -182,7 +220,7 @@ void checkStmt(const forstmt& node)
 {
   typeScope.push_back({}); // new scope
   checkStmt(node.init);
-  if(checkExpr(node.cond) != dataType::bool_)
+  if(checkExpr(node.cond) != type{dataType::bool_,0})
   {
       std::cerr << filename << ": error: 'for' condition must be a boolean" << std::endl;
       exit(EXIT_FAILURE);
@@ -195,9 +233,10 @@ void checkStmt(const forstmt& node)
 
 void checkStmt(const exitstmt& node)
 {
-  if (checkExpr(node.value) != dataType::int_ && checkExpr(node.value) != dataType::bool_)
+  type val = checkExpr(node.value);
+  if (val != type{dataType::int_, 0} && val != type{dataType::bool_,0})
   {
-    std::cerr<<filename<<": error: exit() expects int or bool, got "<<toStr(checkExpr(node.value))<<std::endl;
+    std::cerr<<filename<<": error: exit() expects int or bool, got "<<toStr(checkExpr(node.value).base)<<std::endl;
     exit(EXIT_FAILURE);
   }
 }
@@ -244,9 +283,9 @@ dataType tokenToType(TokenType token)
 }
 
 
-std::string toStr(dataType type)
+std::string toStr(dataType t)
 {
-  switch (type) {
+  switch (t) {
     case dataType::int_:
       return "int";
     case dataType::float_:
@@ -255,8 +294,13 @@ std::string toStr(dataType type)
       return "char";
     case dataType::bool_:
       return "bool";
-    default:
-      exit(EXIT_FAILURE);
   }
   return "UNKNOWN";
+}
+
+
+
+std::string toStr(type t)
+{
+  return toStr(t.base) + std::string(t.depth,'*');
 }

@@ -26,6 +26,8 @@ forstmt parseFor();
 void expected(TokenType expectedType, token currToken);
 token expect(TokenType type);
 bool isTypeToken(TokenType type);
+Expr computeAtom();
+
 
 statement parseStatement()
 {
@@ -43,7 +45,9 @@ statement parseStatement()
   }
   if (TokenVector.at(i).type == TokenType::exit)
   {
-    return parseExit();
+    auto stmt = parseExit();
+    expect(TokenType::semi);
+    return stmt;
   }
   if (TokenVector.at(i).type == TokenType::openBrace)
   {
@@ -51,11 +55,23 @@ statement parseStatement()
   }
   else if (TokenVector.at(i).type == TokenType::ident_lit)
   {
-    return parseAssign();
+    auto stmt = parseAssign();
+    expect(TokenType::semi);
+    return stmt;
   }
   else if(isTypeToken(TokenVector.at(i).type))
   {
-    return parseLet();
+    auto stmt = parseLet();
+    expect(TokenType::semi);
+    return stmt;
+  }
+  else if (TokenVector.at(i).type == TokenType::star)
+  {
+    Expr target = computeAtom();
+    expect(TokenType::eq);
+    auto stmt = deref{target, parseExpr()};
+    expect(TokenType::semi);
+    return stmt;
   }
   expected("statement");
   exit(EXIT_FAILURE);
@@ -98,12 +114,11 @@ Expr computeAtom()
     expect(TokenType::closeParen);
     return result;
   }
-  else if(value.type == TokenType::minus)
+  else if(value.type == TokenType::minus || value.type == TokenType::star || value.type == TokenType::amp)
   {
-    Expr result = computeAtom();
-    return new unExpr{value, result};
+    return new unExpr{value, computeAtom()};
   }
-  expected("statement");
+  expected("expression");
   exit(EXIT_FAILURE);
 }
 
@@ -137,9 +152,14 @@ exitstmt parseExit()
 letstmt parseLet()
 {
 
-  if(i >= TokenVector.size() || !isTypeToken(TokenVector.at(i).type))
+  if(i < TokenVector.size() && !isTypeToken(TokenVector.at(i).type))
   {
     expected("type");
+  }
+  typeInfo type{TokenVector.at(i++).type, 0 }; // initialise depth as 0
+  while(i < TokenVector.size() && TokenVector.at(i).type == TokenType::star)
+  {
+    type.depth++; i++; //if type* increase depth and go to next token/char
   }
   // if(TokenVector.at(i).type != TokenType::int_ && TokenVector.at(i).type != TokenType::float_ && TokenVector.at(i).type != TokenType::char_ && TokenVector.at(i).type != TokenType::bool_)
   // {
@@ -149,7 +169,7 @@ letstmt parseLet()
   // token name = expect(TokenType::ident_lit);
   // expect(TokenType::eq);
   // auto value = parseExpr();
-  TokenType type = TokenVector.at(i++).type;
+  // TokenType type = TokenVector.at(i++).type;
   token name = expect(TokenType::ident_lit);
   expect(TokenType::eq);
   return letstmt{type, name, parseExpr()};
