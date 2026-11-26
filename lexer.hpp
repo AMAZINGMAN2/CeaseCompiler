@@ -48,6 +48,7 @@ enum class TokenType
   float_lit,
   char_lit,
   amp,
+  print,
 };
 
 int prec(TokenType type)
@@ -147,6 +148,8 @@ std::string toStr(TokenType type)
       return "char";
     case TokenType::amp:
       return "`&`";
+    case TokenType::print:
+      return "print";
   }
 }
 // A GOOD EXAMPLE OF ABSTRACT SYNTAX TREES. although this implementation differs a little bit
@@ -241,6 +244,12 @@ struct exitstmt
   Expr value;
 };
 
+struct printstmt
+{
+  Expr value;
+};
+
+
 
 struct assignstmt
 {
@@ -279,7 +288,7 @@ struct forstmt
 };
 
 // add all possible statement here
-using statement = std::variant<letstmt, exitstmt, block*, assignstmt, ifstmt, whilestmt, forstmt, deref>;
+using statement = std::variant<letstmt, exitstmt, block*, assignstmt, ifstmt, whilestmt, forstmt, deref, printstmt>;
 
 struct Program{ // a program is a list of statements.
   std::vector<statement> statements;
@@ -321,6 +330,10 @@ for (unsigned int index = 0; index < length; index++) {
     if (currentToken == "exit") //exit keyword
     {
       TokenVector.push_back({TokenType::exit, std::nullopt, tokenline, tokenchr});
+    }
+    else if (currentToken == "print") //print keyword
+    {
+      TokenVector.push_back({TokenType::print, std::nullopt, tokenline, tokenchr});
     }
     else if (currentToken == "false") //exit keyword
     {

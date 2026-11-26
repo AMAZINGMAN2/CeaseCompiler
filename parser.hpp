@@ -19,6 +19,7 @@ Program parse(std::string file) // the main parse function looping over all the 
 assignstmt parseAssign();
 block* parseBlock();
 exitstmt parseExit();
+printstmt parsePrint();
 letstmt parseLet();
 ifstmt parseIf();
 whilestmt parseWhile();
@@ -46,6 +47,12 @@ statement parseStatement()
   if (TokenVector.at(i).type == TokenType::exit)
   {
     auto stmt = parseExit();
+    expect(TokenType::semi);
+    return stmt;
+  }
+  if (TokenVector.at(i).type == TokenType::print)
+  {
+    auto stmt = parsePrint();
     expect(TokenType::semi);
     return stmt;
   }
@@ -146,6 +153,18 @@ exitstmt parseExit()
   expect(TokenType::closeParen);
   return exitstmt{value};
 }
+
+
+printstmt parsePrint()
+{
+  expect(TokenType::print);
+  expect(TokenType::openParen);
+  auto value = parseExpr();
+  expect(TokenType::closeParen);
+  return printstmt{value};
+}
+
+
 
 
 

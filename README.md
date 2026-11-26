@@ -42,7 +42,7 @@ The syntax in the programming language aims to be close to C while balancing key
 
 Although semicolons makes code a cluttered it significantly improves the error messages
 
-For readability we use `//` for comments, `int` for integers, not implementing `i8` or `u8` like Rust, because it introduces ambiguity and makes the code harder to read. This also keeps the syntax close to C's
+For readability we use `//` for comments, `int` for integers, not implementing `i8` or `u8` like Rust or references like in C++, because it introduces ambiguity and makes the code harder to read. This also keeps the syntax close to C's
 
 ## Errors
 

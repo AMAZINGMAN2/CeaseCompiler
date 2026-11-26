@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
+#include <type_traits>
 #include <unordered_map>
 #include <variant>
 #include "lexer.hpp"
@@ -196,6 +197,25 @@ void generator(const exitstmt& node)
   }
   exit(std::get<bool>(value));
 }
+
+
+void generator(const printstmt& node)
+{
+  std::visit([](const auto& v){
+      using T = std::decay_t<decltype(v)>;
+      if constexpr(std::is_same_v<T,bool>)
+      printf("%s\n", v ? "true" : "false");
+      else if constexpr(std::is_same_v<T,std::shared_ptr<Cell>>)
+      printf("%p\n", (void*)v.get());
+      else if constexpr(std::is_same_v<T,char>)
+      printf("%c\n",v);
+      else if constexpr(std::is_same_v<T,double>)
+      printf("%f\n",v);
+      else if constexpr (std::is_same_v<T,int>) 
+      printf("%d\n",v);
+      }, eval(node.value));
+}
+
 void generator(const letstmt& node)
 {
   scope.back()[node.name.value.value()] = std::make_shared<Cell>(Cell{eval(node.value)});

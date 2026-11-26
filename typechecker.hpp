@@ -241,6 +241,18 @@ void checkStmt(const exitstmt& node)
   }
 }
 
+
+void checkStmt(const printstmt& node)
+{
+  type val = checkExpr(node.value);
+  if (val != type{dataType::int_, 0} && val != type{dataType::bool_,0} && val != type{dataType::float_,0} && val != type{dataType::char_,0})
+  {
+    std::cerr<<filename<<": error: print() expects int or bool, float or address, got "<<toStr(checkExpr(node.value).base)<<std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+
 void checkStmt(const block* node)
 {
   typeScope.push_back({}); // new scope

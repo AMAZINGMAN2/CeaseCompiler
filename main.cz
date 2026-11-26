@@ -1,3 +1,11 @@
+bool n = false;
+int v = 9;
+int* m = &v;
+print(3);
+exit(0);
+
+
+{
 int x = 10;
 int* p = &x;
 int** pp = &p;
@@ -12,7 +20,9 @@ int y = 0;
 }
 
 if (p == &x) {
-    exit(**pp + y); // 42 + 5 = 47
+    print(3.2);
+    exit(0);
+    //exit(**pp + y); // 42 + 5 = 47
 }
 
 
@@ -43,4 +53,4 @@ for(int i = 0; i <= 5; i = i + 1)
 exit(b);
 
 
-
+}
